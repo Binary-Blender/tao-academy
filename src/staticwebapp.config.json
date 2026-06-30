@@ -1,0 +1,13 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/courses/*", "/academy.css", "/images/*"]
+  },
+  "mimeTypes": {
+    ".html": "text/html",
+    ".css": "text/css"
+  },
+  "globalHeaders": {
+    "cache-control": "public, max-age=3600, must-revalidate"
+  }
+}

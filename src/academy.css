@@ -1,0 +1,258 @@
+/* ============================================================
+   TAO Academy — stylesheet
+   Design language cloned from Binary Blender (binary-blender.com)
+   so the Academy reads as a sibling property, not a stranger.
+   Two halves:
+     1. Site chrome  — nav, hero, catalog, CTA band, footer
+     2. Reading theme — styles the EXISTING course/module bodies
+        (.callout / .module-list / .section-label / blockquote / pre …)
+        recolored from the source indigo into the BB blue palette.
+   ============================================================ */
+
+:root {
+    --primary-color: #2D3436;
+    --accent-color: #00A8FF;
+    --secondary-blue: #4B7BEC;
+    --text-color: #2D3436;
+    --text-secondary: #636e72;
+    --light-bg: #F5F6FA;
+    --gradient: linear-gradient(135deg, #00A8FF, #4B7BEC);
+    --ink-hero: linear-gradient(135deg, #0d1b2a 0%, #0f3460 55%, #1a5fa8 100%);
+    --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    --card-radius: 10px;
+    --transition: 0.3s ease;
+    --read-width: 760px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+html { scroll-behavior: smooth; }
+body { line-height: 1.6; color: var(--text-color); background: #fff; }
+
+a { color: var(--accent-color); text-decoration: none; transition: color var(--transition); }
+a:hover { color: var(--secondary-blue); }
+
+/* ---- Navigation (mirrors BB nav.js output) ---- */
+nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.25rem 8%; background: white; position: fixed;
+    width: 100%; top: 0; z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.logo {
+    font-size: 1.6rem; font-weight: bold; cursor: pointer;
+    background: var(--gradient);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.logo small { font-weight: 600; font-size: 0.7rem; letter-spacing: 0.18em;
+    text-transform: uppercase; -webkit-text-fill-color: var(--text-secondary);
+    display: block; margin-top: 2px; }
+.nav-links { display: flex; align-items: center; gap: 0.25rem; }
+.nav-links a { padding: 0.5rem 1rem; color: var(--text-color); font-weight: 500;
+    font-size: 0.95rem; transition: color var(--transition); }
+.nav-links a:hover, .nav-links a.active { color: var(--accent-color); }
+.nav-links a.nav-cta {
+    background: var(--gradient); color: #fff; border-radius: 8px;
+    padding: 0.5rem 1.1rem; font-weight: 600;
+}
+.nav-links a.nav-cta:hover { color: #fff; opacity: 0.92; }
+.nav-toggle { display: none; background: none; border: none; font-size: 1.5rem;
+    cursor: pointer; color: var(--text-color); }
+
+/* ---- Hero ---- */
+.hero {
+    min-height: 62vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 140px 8% 90px; background: var(--ink-hero);
+    position: relative; overflow: hidden; text-align: center; color: #fff;
+}
+.hero::before {
+    content: ''; position: absolute; width: 700px; height: 700px;
+    top: -200px; right: -200px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,168,255,0.25), transparent 70%);
+}
+.hero-eyebrow {
+    display: inline-block; color: #67e8f9; font-size: 0.8rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.18em; margin-bottom: 1rem;
+    position: relative;
+}
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.1;
+    margin-bottom: 1rem; position: relative; }
+.hero h1 .highlight { background: var(--gradient);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; }
+.hero p { max-width: 680px; color: #cbd5e1; font-size: 1.1rem;
+    margin: 0 auto 1.8rem; position: relative; }
+.hero .cta-buttons { display: flex; gap: 0.8rem; flex-wrap: wrap;
+    justify-content: center; position: relative; }
+
+/* ---- Buttons ---- */
+.cta-button {
+    display: inline-block; padding: 0.8rem 1.6rem; border-radius: 8px;
+    font-weight: 600; background: var(--gradient); color: #fff;
+    border: 2px solid transparent; transition: var(--transition);
+}
+.cta-button:hover { color: #fff; transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,168,255,0.3); }
+.cta-button.outline { background: transparent; border-color: #67e8f9; color: #67e8f9; }
+.cta-button.outline:hover { background: rgba(103,232,249,0.1); color: #fff; }
+
+/* ---- Catalog ---- */
+.section { padding: 4.5rem 8%; max-width: 1200px; margin: 0 auto; }
+.section.alt { background: var(--light-bg); max-width: none; }
+.section h2 { font-size: 1.9rem; text-align: center; margin-bottom: 0.5rem; }
+.section-subtitle { text-align: center; color: var(--text-secondary);
+    max-width: 640px; margin: 0 auto 2.5rem; }
+
+.program-block { margin-top: 3rem; }
+.program-block:first-of-type { margin-top: 1rem; }
+.program-label { display: inline-block; font-size: 1.15rem; font-weight: 800;
+    letter-spacing: -0.01em; color: var(--primary-color);
+    border-bottom: 3px solid var(--accent-color); padding-bottom: 0.3rem; }
+.program-blurb { color: var(--text-secondary); margin: 0.6rem 0 1.4rem; max-width: 680px; }
+.pill.level { color: #fff; }
+.pill.lvl-0 { background: #0ea5a3; }
+.pill.lvl-1 { background: #4B7BEC; }
+.pill.lvl-2 { background: #7c5cff; }
+
+.course-grid { display: grid; gap: 1.4rem;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+.course-card {
+    display: flex; flex-direction: column; background: #fff;
+    border: 1px solid #e8ecf2; border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow); overflow: hidden; transition: var(--transition);
+}
+.course-card:hover { transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(13,27,42,0.14); }
+.course-card .cc-top { height: 6px; background: var(--gradient); }
+.course-card .cc-body { padding: 1.4rem 1.4rem 1.5rem; flex: 1;
+    display: flex; flex-direction: column; }
+.course-card h3 { font-size: 1.2rem; margin-bottom: 0.4rem; color: var(--primary-color); }
+.course-card p { color: var(--text-secondary); font-size: 0.94rem; flex: 1; }
+.course-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+.pill { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 0.2em 0.7em; border-radius: 999px; }
+.pill.free { background: #e6f7ff; color: #0077b6; }
+.pill.modules { background: #f1f3f9; color: #4b5563; }
+.course-card .cc-link { margin-top: 1rem; font-weight: 600; color: var(--accent-color); }
+.course-card.soon { opacity: 0.72; }
+.course-card.soon .cc-top { background: #cbd5e1; }
+.pill.soon { background: #fef3c7; color: #b45309; }
+
+/* ---- Funnel CTA band (shared on catalog + every lesson) ---- */
+.funnel-band {
+    background: var(--ink-hero); color: #fff; text-align: center;
+    padding: 3.5rem 8%;
+}
+.funnel-band h2 { color: #fff; }
+.funnel-band p { color: #cbd5e1; max-width: 600px; margin: 0.6rem auto 1.6rem; }
+.funnel-band .cta-buttons { display: flex; gap: 0.8rem; justify-content: center;
+    flex-wrap: wrap; }
+
+/* ---- Footer ---- */
+footer { background: #0b1320; color: #cbd5e1; padding: 3rem 8% 2rem; }
+.footer-content { display: flex; flex-wrap: wrap; gap: 1rem;
+    justify-content: space-between; align-items: center; max-width: 1100px; margin: 0 auto; }
+.footer-logo { font-size: 1.3rem; font-weight: bold; background: var(--gradient);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.footer-links { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+.footer-links a { color: #cbd5e1; font-size: 0.9rem; }
+.footer-links a:hover { color: var(--accent-color); }
+.footer-bottom { text-align: center; color: #64748b; font-size: 0.85rem;
+    margin-top: 2rem; border-top: 1px solid #1e293b; padding-top: 1.5rem; }
+
+/* ============================================================
+   2. READING THEME — wraps the source course/module bodies
+   ============================================================ */
+.reading-shell { padding: 110px 1.5rem 0; }
+.breadcrumb { max-width: var(--read-width); margin: 0 auto 0.5rem;
+    font-size: 0.85rem; color: var(--text-secondary); }
+.breadcrumb a { color: var(--accent-color); }
+
+.reading {
+    max-width: var(--read-width); margin: 0 auto; padding: 1rem 0 2rem;
+    line-height: 1.75; color: #1a1a1a;
+}
+.reading h1 { font-size: 1.9em; margin-bottom: 0.2em; line-height: 1.2; }
+.reading h2 { font-size: 1.35em; margin-top: 2em; color: var(--secondary-blue); }
+.reading h3 { font-size: 1.12em; margin-top: 1.5em; color: var(--primary-color); }
+.reading p { margin: 0.85em 0; }
+.reading ul, .reading ol { margin: 0.85em 0; padding-left: 1.5em; }
+.reading li { margin: 0.4em 0; }
+.reading a { color: var(--accent-color); }
+.reading hr { margin: 2em 0; border: none; border-top: 1px solid #e5e5e5; }
+.reading .intro { font-size: 1.08em; color: #555; margin-bottom: 1.5em; }
+
+.reading blockquote { border-left: 4px solid var(--accent-color); margin: 1.2em 0;
+    padding: 0.8em 1.2em; background: #f3fbff; border-radius: 0 8px 8px 0; }
+.reading blockquote p { margin: 0.3em 0; }
+
+.reading .callout { background: #fffde7; border: 1px solid #fff9c4;
+    padding: 1em 1.2em; border-radius: 8px; margin: 1.2em 0; }
+.reading .callout strong { color: #f57f17; }
+
+.reading code { background: #eef2f7; padding: 0.15em 0.4em; border-radius: 4px;
+    font-size: 0.92em; font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }
+.reading pre { background: #0d1b2a; color: #e2e8f0; border-radius: 8px;
+    padding: 1em 1.2em; overflow-x: auto; font-size: 0.88em; line-height: 1.5; margin: 1.2em 0;
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }
+.reading pre code { background: none; padding: 0; color: inherit; }
+
+.reading .section-label { display: inline-block; background: var(--gradient);
+    color: #fff; padding: 0.2em 0.8em; border-radius: 4px; font-size: 0.82em;
+    font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.4em; }
+
+/* Course-landing module list (reused verbatim from source bodies) */
+.reading .module-list { list-style: none; padding: 0; }
+.reading .module-list li { padding: 0.85em 1em; margin: 0.5em 0; background: #f3fbff;
+    border-left: 4px solid var(--accent-color); border-radius: 0 8px 8px 0; }
+.reading .module-list li a { font-weight: 600; color: var(--accent-color); }
+.reading .module-list li a:hover { text-decoration: underline; }
+.reading .module-list li .desc { display: block; color: #666; font-size: 0.9em; margin-top: 0.2em; }
+/* tier accents preserved from source, retinted toward the BB family */
+.reading .module-list.intermediate li { border-left-color: #0ea5a3; background: #effdfb; }
+.reading .module-list.intermediate li a { color: #0ea5a3; }
+.reading .module-list.advanced li { border-left-color: #4B7BEC; background: #eef3ff; }
+.reading .module-list.advanced li a { color: #4B7BEC; }
+.reading .module-list.expert li { border-left-color: #7c5cff; background: #f1eeff; }
+.reading .module-list.expert li a { color: #7c5cff; }
+
+/* ---- Lesson prev/next nav ---- */
+.lesson-nav {
+    max-width: var(--read-width); margin: 2rem auto 0;
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    border-top: 1px solid #e5e5e5; padding-top: 1.5rem;
+}
+.lesson-nav a {
+    flex: 1 1 0; min-width: 200px; padding: 0.9em 1.1em; border-radius: 8px;
+    border: 1px solid #e2e8f0; background: #fff; transition: var(--transition);
+}
+.lesson-nav a:hover { border-color: var(--accent-color); box-shadow: var(--card-shadow); }
+.lesson-nav a.next { text-align: right; }
+.lesson-nav a.disabled { visibility: hidden; }
+.lesson-nav .ln-dir { display: block; font-size: 0.72rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 0.2rem; }
+.lesson-nav .ln-title { font-weight: 600; color: var(--primary-color); }
+
+/* ---- Per-lesson CTA (lighter than the full funnel band) ---- */
+.lesson-cta {
+    max-width: var(--read-width); margin: 2.5rem auto 0; padding: 1.6rem 1.8rem;
+    background: var(--light-bg); border: 1px solid #e2e8f0; border-radius: 12px;
+    text-align: center;
+}
+.lesson-cta h3 { margin-bottom: 0.4rem; color: var(--primary-color); }
+.lesson-cta p { color: var(--text-secondary); margin-bottom: 1rem; }
+
+/* ---- Responsive ---- */
+@media (max-width: 860px) {
+    nav { padding: 1rem 5%; }
+    .nav-toggle { display: block; }
+    .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0;
+        flex-direction: column; align-items: stretch; background: #fff;
+        padding: 0.5rem 5% 1rem; box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
+    .nav-links.open { display: flex; }
+    .nav-links a { padding: 0.7rem 0; }
+    .section, .funnel-band, .reading-shell { padding-left: 5%; padding-right: 5%; }
+}
