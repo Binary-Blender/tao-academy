@@ -42,33 +42,27 @@ cd dist && python3 -m http.server 8080   # → http://localhost:8080
 
 ## Deploy
 
-**Live now:** https://binary-blender.github.io/tao-academy/
-**Repo:** `Binary-Blender/tao-academy` — `main` holds the generator, `gh-pages`
-holds the published site (served by GitHub Pages, branch `gh-pages`, root).
+**Live:** https://tao-academy.pages.dev — host: **Cloudflare Pages** (project `tao-academy`).
+**Repo:** `Binary-Blender/tao-academy` (`main` = generator source; this is the
+code home, not the host).
 
 To publish an update:
 
 ```
-./publish.sh        # rebuilds dist/ and force-pushes it to gh-pages
+./publish.sh        # rebuilds dist/ and runs `wrangler pages deploy`
 ```
 
-> Hosted on GitHub Pages rather than Azure Static Web Apps (the main site's host)
-> because this environment had no Azure auth. To move to Azure for parity, create
-> a Static Web App pointed at this repo's `gh-pages` branch (artifact location
-> `/`) and the same custom-domain step below applies.
+Creds come from env (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) or fall
+back to the local key store at `_Dev/agicore-foundry/api_keys.txt`.
 
 ### Custom domain — academy.binary-blender.com
 
-The site is reachable at the `github.io` URL above today. To put it on the
-subdomain, two steps (both require access this build process doesn't have):
+The `binary-blender.com` zone is on the same Cloudflare account, so the custom
+domain is bound to the Pages project. The only remaining piece is the DNS record
+(the deploy token lacks DNS:Edit):
 
-1. **DNS** — at the host for `binary-blender.com`, add a CNAME:
-   `academy` → `binary-blender.github.io`
-2. **Pages** — once DNS resolves, set the custom domain in
-   repo → Settings → Pages → Custom domain = `academy.binary-blender.com`
-   (this writes a `CNAME` file to `gh-pages` and enables HTTPS).
+- In the Cloudflare dashboard → `binary-blender.com` → DNS, add:
+  **CNAME `academy` → `tao-academy.pages.dev`**, proxied (orange cloud).
 
-Do **not** set the Pages custom domain before DNS is live — Pages would redirect
-the working `github.io` URL to a domain that doesn't resolve yet.
-
-`staticwebapp.config.json` ships in `dist/` for a future Azure move; Pages ignores it.
+It goes live (with auto HTTPS) within a minute of that record existing.
+`staticwebapp.config.json` ships in `dist/` but is inert on Pages.
