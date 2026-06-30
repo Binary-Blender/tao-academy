@@ -40,14 +40,35 @@ Open `dist/index.html` directly in a browser, or:
 cd dist && python3 -m http.server 8080   # → http://localhost:8080
 ```
 
-## Deploy — academy.binary-blender.com
+## Deploy
 
-Static; deploy `dist/` to a new Azure Static Web App (sibling to the main site),
-then point the `academy` subdomain at it.
+**Live now:** https://binary-blender.github.io/tao-academy/
+**Repo:** `Binary-Blender/tao-academy` — `main` holds the generator, `gh-pages`
+holds the published site (served by GitHub Pages, branch `gh-pages`, root).
 
-1. New Static Web App (or `swa deploy ./dist`). App artifact location = `dist`.
-2. In the SWA → **Custom domains**, add `academy.binary-blender.com`.
-3. At the DNS host for `binary-blender.com`, add the CNAME the portal shows
-   (`academy` → `<app>.azurestaticapps.net`), validate, done.
+To publish an update:
 
-`staticwebapp.config.json` (copied into `dist/`) sets the SPA fallback + caching.
+```
+./publish.sh        # rebuilds dist/ and force-pushes it to gh-pages
+```
+
+> Hosted on GitHub Pages rather than Azure Static Web Apps (the main site's host)
+> because this environment had no Azure auth. To move to Azure for parity, create
+> a Static Web App pointed at this repo's `gh-pages` branch (artifact location
+> `/`) and the same custom-domain step below applies.
+
+### Custom domain — academy.binary-blender.com
+
+The site is reachable at the `github.io` URL above today. To put it on the
+subdomain, two steps (both require access this build process doesn't have):
+
+1. **DNS** — at the host for `binary-blender.com`, add a CNAME:
+   `academy` → `binary-blender.github.io`
+2. **Pages** — once DNS resolves, set the custom domain in
+   repo → Settings → Pages → Custom domain = `academy.binary-blender.com`
+   (this writes a `CNAME` file to `gh-pages` and enables HTTPS).
+
+Do **not** set the Pages custom domain before DNS is live — Pages would redirect
+the working `github.io` URL to a domain that doesn't resolve yet.
+
+`staticwebapp.config.json` ships in `dist/` for a future Azure move; Pages ignores it.
