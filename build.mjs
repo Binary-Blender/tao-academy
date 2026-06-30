@@ -28,7 +28,7 @@ const DIST = join(__dirname, 'dist');
 // --- Funnel destinations (point back into the Binary Blender funnel) ---
 const MAIN_SITE = 'https://www.binary-blender.com';
 const APPS_URL  = `${MAIN_SITE}/apps.html`;
-const BOOK_CALL = 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ2wt3HLTy6Jsp5HMHDQvqceKznztI1NiD6_HOoDO7J6W5lwb04EVdaRW4XB-TqqBQZppZ_lcBM2?gv=true';
+const SHOP_URL = 'https://www.binary-blender.com/shop';
 
 // --- Programs to scan, in catalog order. The label is what the visitor sees. ---
 const PROGRAMS = [
@@ -139,7 +139,7 @@ function nav(root, active) {
     ${a(`${root}index.html`, 'Courses', active === 'home' ? 'active' : '')}
     ${a(APPS_URL, 'Free Apps')}
     ${a(MAIN_SITE, 'Binary Blender ↗')}
-    ${a(BOOK_CALL, 'Book a Build Day', 'nav-cta')}
+    ${a(SHOP_URL, 'Book a Build Day', 'nav-cta')}
   </div>
 </nav>`;
 }
@@ -151,7 +151,7 @@ function footer(root) {
       <a href="${root}index.html">All Courses</a>
       <a href="${APPS_URL}">Free Apps</a>
       <a href="${MAIN_SITE}">Binary Blender</a>
-      <a href="${BOOK_CALL}">Book a Build Day</a>
+      <a href="${SHOP_URL}">Book a Build Day</a>
       <a href="mailto:chrisbender999@gmail.com">Contact</a>
     </div>
   </div>
@@ -183,7 +183,7 @@ function lessonCta() {
   return `<div class="lesson-cta">
   <h3>Want this run inside your team?</h3>
   <p>The courses are free forever. When you're ready to put it into production, we build a custom AI-powered app on your hardware in a day.</p>
-  <a href="${BOOK_CALL}" class="cta-button">Book a Build Day &mdash; $4,890</a>
+  <a href="${SHOP_URL}" class="cta-button">Book a Build Day &mdash; $4,890</a>
 </div>`;
 }
 
@@ -298,7 +298,7 @@ function renderCatalog(byProgram, totals) {
   <h2>Free to learn. Built to deploy.</h2>
   <p>The Academy teaches the method. When you're ready to put it into production, we build a custom AI-powered app &mdash; on open-source models, on your hardware, yours to keep &mdash; in a single day.</p>
   <div class="cta-buttons">
-    <a href="${BOOK_CALL}" class="cta-button">Book a Build Day &mdash; $4,890</a>
+    <a href="${SHOP_URL}" class="cta-button">Book a Build Day &mdash; $4,890</a>
     <a href="${APPS_URL}" class="cta-button outline">Browse the free apps</a>
   </div>
 </section>`;
