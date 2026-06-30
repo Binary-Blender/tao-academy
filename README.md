@@ -42,27 +42,27 @@ cd dist && python3 -m http.server 8080   # → http://localhost:8080
 
 ## Deploy
 
-**Live:** https://tao-academy.pages.dev — host: **Cloudflare Pages** (project `tao-academy`).
-**Repo:** `Binary-Blender/tao-academy` (`main` = generator source; this is the
-code home, not the host).
+**Live:** https://academy.binary-blender.com
+**Host:** a Cloudflare **Worker with static assets** (`wrangler.jsonc`, worker
+`tao-academy`, also at `tao-academy.chrisbender999.workers.dev`).
+**Repo:** `Binary-Blender/tao-academy` (`main` = generator source; the code home).
 
 To publish an update:
 
 ```
-./publish.sh        # rebuilds dist/ and runs `wrangler pages deploy`
+./publish.sh        # rebuilds dist/ and runs `wrangler deploy`
 ```
 
 Creds come from env (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) or fall
 back to the local key store at `_Dev/agicore-foundry/api_keys.txt`.
 
-### Custom domain — academy.binary-blender.com
+### Why a Worker, not Pages
 
-The `binary-blender.com` zone is on the same Cloudflare account, so the custom
-domain is bound to the Pages project. The only remaining piece is the DNS record
-(the deploy token lacks DNS:Edit):
+The deploy token has `Workers:Edit` + zone read but **not** `Zone:DNS:Edit`.
+Attaching a custom domain to a Worker via the Workers domains API
+(`PUT /accounts/{id}/workers/domains`) auto-provisions the DNS record **and** the
+TLS cert as a managed side effect — no DNS:Edit required. Pages' custom-domain
+flow did not, so the site was moved onto a Worker. `academy.binary-blender.com`
+is already attached; `./publish.sh` just pushes new content to it.
 
-- In the Cloudflare dashboard → `binary-blender.com` → DNS, add:
-  **CNAME `academy` → `tao-academy.pages.dev`**, proxied (orange cloud).
-
-It goes live (with auto HTTPS) within a minute of that record existing.
-`staticwebapp.config.json` ships in `dist/` but is inert on Pages.
+`staticwebapp.config.json` ships in `dist/` but is inert here.

@@ -1,0 +1,10 @@
+{
+  // TAO Academy served as a Worker with static assets (not Pages), so the
+  // custom domain can be attached via the Workers domains API — which
+  // auto-provisions the DNS record + SSL with only Workers:Edit + zone read.
+  "name": "tao-academy",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
