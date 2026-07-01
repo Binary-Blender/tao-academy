@@ -112,6 +112,7 @@ nav {
     letter-spacing: -0.01em; color: var(--primary-color);
     border-bottom: 3px solid var(--accent-color); padding-bottom: 0.3rem; }
 .program-blurb { color: var(--text-secondary); margin: 0.6rem 0 1.4rem; max-width: 680px; }
+.pill.book { background: #eaf7ee; color: #157347; }
 .pill.level { color: #fff; }
 .pill.lvl-0 { background: #0ea5a3; }
 .pill.lvl-1 { background: #4B7BEC; }
@@ -140,6 +141,38 @@ nav {
 .course-card.soon { opacity: 0.72; }
 .course-card.soon .cc-top { background: #cbd5e1; }
 .pill.soon { background: #fef3c7; color: #b45309; }
+
+/* ---- Start Here — the foundational path ---- */
+.start-here { padding-bottom: 1rem; }
+.path-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.3rem; max-width: 1100px; margin: 0 auto; }
+.path-step {
+    position: relative; display: flex; gap: 0.9rem; align-items: flex-start;
+    background: #fff; border: 1px solid #e2e8f0; border-left: 4px solid var(--accent-color);
+    border-radius: 10px; padding: 1.2rem 1.3rem; box-shadow: var(--card-shadow);
+    transition: var(--transition);
+}
+.path-step:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(13,27,42,0.14); }
+.path-num {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--gradient); color: #fff; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
+}
+.path-body { display: flex; flex-direction: column; min-width: 0; }
+.path-title { font-weight: 700; color: var(--primary-color); }
+.path-desc { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem; line-height: 1.5; }
+.tb-dot { font-size: 0.9em; }
+/* sequence connectors */
+.path-step:not(:last-child)::after {
+    content: '\2192'; position: absolute; right: -0.95rem; top: 50%;
+    transform: translateY(-50%); color: var(--accent-color); font-weight: 700;
+    font-size: 1.2rem; z-index: 2;
+}
+@media (max-width: 780px) {
+    .path-row { grid-template-columns: 1fr; gap: 1.6rem; }
+    .path-step:not(:last-child)::after {
+        content: '\2193'; right: 50%; top: auto; bottom: -1.05rem; transform: translateX(50%);
+    }
+}
 
 /* ---- Funnel CTA band (shared on catalog + every lesson) ---- */
 .funnel-band {

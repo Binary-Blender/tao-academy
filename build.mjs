@@ -41,6 +41,10 @@ const MANUAL_TEXTBOOKS = {
   'ai-creative-direction': 'AI Art Textbooks/AI Creative Director Textbook/the_ai_creative_director.epub',
 };
 
+// The curated on-ramp: foundational courses in increasing order. These lead the
+// catalog (a "Start Here" path) and sort first within their program block.
+const FEATURED_PATH = ['mastering-ai-prompts', 'how-to-use-your-strategic-ai', 'stop-being-the-bottleneck'];
+
 // --- Programs to scan, in catalog order. The label is what the visitor sees. ---
 const PROGRAMS = [
   { dir: 'Tactical AI Orchestration', label: 'Tactical AI Orchestration', blurb: 'The flagship program — building, creating, and orchestrating with AI, from first prompt to frontier technique.' },
@@ -317,15 +321,37 @@ function renderCatalog(byProgram, totals) {
   const card = (c) => `<a class="course-card" href="courses/${c.slug}/index.html">
       <div class="cc-top"></div>
       <div class="cc-body">
-        <div class="course-meta"><span class="pill free">Free</span><span class="pill level lvl-${c.level.rank}">${c.level.label}</span><span class="pill modules">${c.modules} lessons</span></div>
+        <div class="course-meta"><span class="pill free">Free</span><span class="pill level lvl-${c.level.rank}">${c.level.label}</span><span class="pill modules">${c.modules} lessons</span>${c.textbook ? '<span class="pill book">📖 Textbook</span>' : ''}</div>
         <h3>${c.title}</h3>
         <p>${c.blurb}</p>
         <span class="cc-link">Start the course &rarr;</span>
       </div></a>`;
 
+  const bySlug = new Map();
+  for (const list of byProgram.values()) for (const c of list) bySlug.set(c.slug, c);
+  const featuredRank = (slug) => { const i = FEATURED_PATH.indexOf(slug); return i === -1 ? FEATURED_PATH.length : i; };
+
+  const pathStep = (slug, n) => {
+    const c = bySlug.get(slug); if (!c) return '';
+    return `<a class="path-step" href="courses/${c.slug}/index.html">
+        <span class="path-num">${n}</span>
+        <span class="path-body">
+          <span class="path-title">${c.title}${c.textbook ? ' <span class="tb-dot" title="Includes a textbook">📖</span>' : ''}</span>
+          <span class="path-desc">${c.blurb}</span>
+        </span>
+      </a>`;
+  };
+  const startHere = `<section class="section start-here" id="start">
+  <h2>New here? Start with these three.</h2>
+  <p class="section-subtitle">A foundational track, in order &mdash; prompt craft, then strategy, then getting the work off your plate. Do them in sequence, then branch into the full library below.</p>
+  <div class="path-row">
+    ${FEATURED_PATH.map((s, i) => pathStep(s, i + 1)).join('\n    ')}
+  </div>
+</section>`;
+
   const programSection = (p) => {
     const courses = (byProgram.get(p.label) || []).slice()
-      .sort((a, b) => a.level.rank - b.level.rank || a.title.localeCompare(b.title));
+      .sort((a, b) => featuredRank(a.slug) - featuredRank(b.slug) || a.level.rank - b.level.rank || a.title.localeCompare(b.title));
     if (!courses.length) return '';
     return `<div class="program-block">
     <div class="program-label">${p.label}</div>
@@ -341,10 +367,12 @@ function renderCatalog(byProgram, totals) {
   <h1><span class="highlight">TAO Academy</span></h1>
   <p>The complete Tactical AI Orchestration library &mdash; ${totals.courses} courses and ${totals.lessons} lessons on building, creating, and shipping with AI. No signup. No paywall. No email gate. Just open one and start.</p>
   <div class="cta-buttons">
-    <a href="#library" class="cta-button">Browse the library</a>
-    <a href="${APPS_URL}" class="cta-button outline">Try the free apps</a>
+    <a href="#start" class="cta-button">Start here</a>
+    <a href="#library" class="cta-button outline">Browse all courses</a>
   </div>
 </section>
+
+${startHere}
 
 <section class="section" id="library">
   <h2>The Course Library</h2>
