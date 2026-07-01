@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reader | TAO Academy</title>
+    <meta name="description" content="Read TAO Academy course textbooks in your browser, or download the EPUB.">
+    <style>
+        :root {
+            --rdr-bg:         #0d1b2a;
+            --rdr-bg-elev:    #12263f;
+            --rdr-fg:         #f8fafc;
+            --rdr-fg-dim:     #94a3b8;
+            --rdr-fg-dimmer:  #64748b;
+            --rdr-accent:     #00A8FF;
+            --rdr-accent-deep:#0077c2;
+            --rdr-page-bg:    #f8fafc;
+            --rdr-page-fg:    #1f2937;
+        }
+        html, body {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--rdr-bg); color: var(--rdr-fg); overflow: hidden;
+        }
+        body.reader-body { display: flex; flex-direction: column; }
+
+        .reader-header {
+            display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+            padding: 0.85rem 1.5rem; background: var(--rdr-bg-elev);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08); flex-shrink: 0;
+        }
+        .reader-back { color: var(--rdr-accent); text-decoration: none; font-size: 0.92rem; font-weight: 600; white-space: nowrap; }
+        .reader-back:hover { color: var(--rdr-fg); }
+        .reader-title {
+            flex: 1; text-align: center; font-size: 1rem; color: var(--rdr-fg);
+            font-weight: 600; letter-spacing: -0.005em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .reader-title em { color: var(--rdr-accent); font-style: italic; }
+        .reader-actions { display: flex; align-items: center; gap: 0.4rem; }
+        .reader-actions button, .reader-actions .reader-download {
+            background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--rdr-fg); padding: 0.45rem 0.75rem; border-radius: 6px;
+            font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none;
+            white-space: nowrap; transition: background 0.15s, border-color 0.15s; font-family: inherit;
+        }
+        .reader-actions button:hover, .reader-actions .reader-download:hover {
+            background: rgba(255, 255, 255, 0.10); border-color: rgba(255, 255, 255, 0.22);
+        }
+        .reader-actions .reader-download {
+            background: var(--rdr-accent); color: #06263c; border-color: var(--rdr-accent); font-weight: 700;
+        }
+        .reader-actions .reader-download:hover { background: #38bdf8; border-color: #38bdf8; color: #06263c; }
+
+        .reader-main { flex: 1; display: flex; min-height: 0; position: relative; }
+        .reader-toc {
+            width: 280px; flex-shrink: 0; background: var(--rdr-bg-elev);
+            border-right: 1px solid rgba(255, 255, 255, 0.08); overflow-y: auto;
+            padding: 1.25rem 1rem; transition: margin-left 0.25s ease;
+        }
+        .reader-toc.closed { margin-left: -280px; }
+        .reader-toc h3 {
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+            color: var(--rdr-accent); margin: 0 0 0.85rem;
+        }
+        .reader-toc ul { list-style: none; padding: 0; margin: 0; }
+        .reader-toc li { margin-bottom: 0.15rem; }
+        .reader-toc a {
+            display: block; color: var(--rdr-fg-dim); text-decoration: none;
+            padding: 0.45rem 0.6rem; border-radius: 5px; font-size: 0.88rem; line-height: 1.35;
+            transition: background 0.15s, color 0.15s;
+        }
+        .reader-toc a:hover { background: rgba(255, 255, 255, 0.05); color: var(--rdr-fg); }
+        .reader-toc a.active { background: rgba(0, 168, 255, 0.12); color: var(--rdr-accent); }
+
+        .reader-stage { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+        .reader-viewer { flex: 1; min-height: 0; overflow: hidden; background: var(--rdr-page-bg); }
+
+        .reader-nav-zone {
+            position: absolute; top: 0; bottom: 0; width: 60px;
+            display: flex; align-items: center; justify-content: center; background: transparent;
+            cursor: pointer; user-select: none; color: var(--rdr-fg-dimmer);
+            font-size: 1.6rem; line-height: 1; z-index: 5; transition: background 0.15s, color 0.15s;
+        }
+        .reader-nav-zone:hover { background: rgba(0, 0, 0, 0.04); color: var(--rdr-accent-deep); }
+        .reader-nav-zone.prev { left: 0; }
+        .reader-nav-zone.next { right: 0; }
+
+        .reader-footer {
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+            padding: 0.65rem 1.5rem; background: var(--rdr-bg-elev);
+            border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.78rem;
+            color: var(--rdr-fg-dim); flex-shrink: 0;
+        }
+        .reader-progress {
+            flex: 1; height: 4px; background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px; overflow: hidden; margin: 0 1rem;
+        }
+        .reader-progress-bar {
+            height: 100%; background: linear-gradient(90deg, var(--rdr-accent-deep), var(--rdr-accent));
+            transition: width 0.25s ease; width: 0%;
+        }
+        .reader-location { font-variant-numeric: tabular-nums; color: var(--rdr-fg); font-weight: 600; white-space: nowrap; }
+        .reader-chapter { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+        .reader-status {
+            position: absolute; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: var(--rdr-fg-dim);
+            font-size: 0.95rem; gap: 0.5rem; z-index: 10; background: var(--rdr-page-bg);
+        }
+        .reader-status.error { color: #b91c1c; }
+        .reader-status .spinner {
+            width: 28px; height: 28px; border: 3px solid rgba(0, 168, 255, 0.18);
+            border-top-color: var(--rdr-accent); border-radius: 50%; animation: rdr-spin 0.85s linear infinite;
+        }
+        @keyframes rdr-spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 760px) {
+            .reader-header { padding: 0.65rem 0.85rem; gap: 0.5rem; }
+            .reader-title { font-size: 0.85rem; }
+            .reader-back { font-size: 0.78rem; }
+            .reader-actions button, .reader-actions .reader-download { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
+            .reader-toc {
+                position: absolute; top: 0; bottom: 0; left: 0; z-index: 20; width: 80%; max-width: 320px;
+                box-shadow: 6px 0 24px rgba(0, 0, 0, 0.4);
+            }
+            .reader-toc.closed { margin-left: 0; transform: translateX(-105%); }
+            .reader-nav-zone { width: 40px; font-size: 1.4rem; }
+            .reader-footer { padding: 0.5rem 0.85rem; font-size: 0.72rem; }
+            .reader-progress { margin: 0 0.5rem; }
+        }
+    </style>
+    <script src="vendor/jszip.min.js"></script>
+    <script src="vendor/epub.min.js"></script>
+</head>
+<body class="reader-body">
+
+    <header class="reader-header">
+        <a href="index.html" id="back-link" class="reader-back">&larr; Back</a>
+        <div class="reader-title" id="book-title">Loading&hellip;</div>
+        <div class="reader-actions">
+            <button id="toc-toggle" type="button" title="Table of contents">Contents</button>
+            <button id="font-down" type="button" title="Smaller text">A&minus;</button>
+            <button id="font-up" type="button" title="Larger text">A+</button>
+            <a id="download-link" href="#" download class="reader-download">Download EPUB</a>
+        </div>
+    </header>
+
+    <div class="reader-main">
+        <aside class="reader-toc closed" id="toc">
+            <h3>Contents</h3>
+            <ul id="toc-list"></ul>
+        </aside>
+        <div class="reader-stage">
+            <div class="reader-viewer" id="viewer">
+                <div class="reader-status" id="status">
+                    <div class="spinner"></div>
+                    <div>Loading book&hellip;</div>
+                </div>
+            </div>
+            <div class="reader-nav-zone prev" id="prev" aria-label="Previous page" role="button" tabindex="0">&lsaquo;</div>
+            <div class="reader-nav-zone next" id="next" aria-label="Next page" role="button" tabindex="0">&rsaquo;</div>
+        </div>
+    </div>
+
+    <footer class="reader-footer">
+        <div class="reader-chapter" id="current-chapter">&nbsp;</div>
+        <div class="reader-progress"><div class="reader-progress-bar" id="progress-bar"></div></div>
+        <div class="reader-location" id="location">&mdash;</div>
+    </footer>
+
+    <script>
+        (function () {
+            // Injected by build.mjs: { slug: { title, rawTitle, file, back:{href,label}, fontSize } }
+            const BOOKS = __BOOKS_MANIFEST__;
+
+            const keys = Object.keys(BOOKS);
+            function getKey() {
+                const params = new URLSearchParams(window.location.search);
+                const k = (params.get('course') || '').toLowerCase();
+                return BOOKS[k] ? k : keys[0];
+            }
+            if (!keys.length) { document.getElementById('book-title').textContent = 'No textbook found'; return; }
+
+            const key = getKey();
+            const config = BOOKS[key];
+            document.title = 'Reading: ' + config.rawTitle + ' | TAO Academy';
+
+            const titleEl = document.getElementById('book-title');
+            const backLink = document.getElementById('back-link');
+            const downloadLink = document.getElementById('download-link');
+            const tocEl = document.getElementById('toc');
+            const tocListEl = document.getElementById('toc-list');
+            const tocToggle = document.getElementById('toc-toggle');
+            const viewerEl = document.getElementById('viewer');
+            const statusEl = document.getElementById('status');
+            const prevZone = document.getElementById('prev');
+            const nextZone = document.getElementById('next');
+            const fontDown = document.getElementById('font-down');
+            const fontUp = document.getElementById('font-up');
+            const locationEl = document.getElementById('location');
+            const chapterEl = document.getElementById('current-chapter');
+            const progressBar = document.getElementById('progress-bar');
+
+            titleEl.innerHTML = config.title;
+            backLink.textContent = '← ' + config.back.label;
+            backLink.href = config.back.href;
+            downloadLink.href = config.file;
+
+            if (typeof ePub === 'undefined') {
+                showError('Could not load the reader library. Try refreshing, or download the EPUB and read it locally.');
+                return;
+            }
+
+            const book = ePub(config.file);
+            const accentColor = '#0077c2', pageBg = '#f8fafc', pageFg = '#1f2937';
+
+            const rendition = book.renderTo(viewerEl, {
+                flow: 'paginated', width: '100%', height: '100%', spread: 'auto', allowScriptedContent: false,
+            });
+
+            rendition.themes.register('site', {
+                'body': {
+                    'background': pageBg + ' !important', 'color': pageFg + ' !important',
+                    'font-family': 'Georgia, "Iowan Old Style", serif !important',
+                    'line-height': '1.65 !important', 'padding': '1.25rem 1.5rem !important',
+                },
+                'p': { 'color': pageFg + ' !important' },
+                'h1, h2, h3, h4, h5, h6': {
+                    'color': pageFg + ' !important',
+                    'font-family': "'Segoe UI', Tahoma, sans-serif !important", 'letter-spacing': '-0.005em',
+                },
+                'a': { 'color': accentColor + ' !important' },
+                'em': { 'color': accentColor + ' !important' },
+                '::selection': { 'background': accentColor + '33' },
+            });
+            rendition.themes.select('site');
+            rendition.themes.fontSize(config.fontSize);
+
+            const storageKey = 'tao-reader-' + key + '-cfi';
+            const startCfi = localStorage.getItem(storageKey);
+
+            rendition.display(startCfi || undefined).then(function () {
+                statusEl.style.display = 'none';
+            }).catch(function (err) {
+                console.error(err);
+                showError('Could not open this book. The EPUB may be missing — try downloading it instead.');
+            });
+
+            book.loaded.navigation.then(function (nav) { renderToc(nav.toc, tocListEl, 0); });
+
+            function renderToc(items, container, depth) {
+                items.forEach(function (item) {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = '#'; a.textContent = item.label.trim();
+                    a.style.paddingLeft = (0.6 + depth * 0.9) + 'rem';
+                    a.dataset.href = item.href;
+                    a.addEventListener('click', function (e) {
+                        e.preventDefault(); rendition.display(item.href);
+                        if (window.innerWidth <= 760) tocEl.classList.add('closed');
+                    });
+                    li.appendChild(a); container.appendChild(li);
+                    if (item.subitems && item.subitems.length) {
+                        const sub = document.createElement('ul');
+                        sub.style.listStyle = 'none'; sub.style.padding = '0'; sub.style.margin = '0';
+                        li.appendChild(sub); renderToc(item.subitems, sub, depth + 1);
+                    }
+                });
+            }
+
+            rendition.on('relocated', function (location) {
+                try { localStorage.setItem(storageKey, location.start.cfi); } catch (e) {}
+                const currentHref = location.start.href;
+                tocListEl.querySelectorAll('a').forEach(function (a) {
+                    const matches = a.dataset.href && (a.dataset.href === currentHref || a.dataset.href.split('#')[0] === currentHref);
+                    a.classList.toggle('active', !!matches);
+                });
+                const active = tocListEl.querySelector('a.active');
+                chapterEl.textContent = active ? active.textContent : '';
+                if (location.start.displayed) {
+                    const p = location.start.displayed.page, t = location.start.displayed.total;
+                    if (p && t) locationEl.textContent = p + ' / ' + t;
+                }
+                if (book.locations.length()) {
+                    const pct = book.locations.percentageFromCfi(location.start.cfi);
+                    progressBar.style.width = Math.round(pct * 100) + '%';
+                    locationEl.textContent = Math.round(pct * 100) + '%';
+                }
+            });
+
+            book.ready.then(function () { return book.locations.generate(1024); }).catch(function () {});
+
+            prevZone.addEventListener('click', function () { rendition.prev(); });
+            nextZone.addEventListener('click', function () { rendition.next(); });
+            prevZone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rendition.prev(); } });
+            nextZone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rendition.next(); } });
+            document.addEventListener('keydown', function (e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                if (e.key === 'ArrowLeft') rendition.prev();
+                if (e.key === 'ArrowRight') rendition.next();
+            });
+            tocToggle.addEventListener('click', function () { tocEl.classList.toggle('closed'); });
+
+            let currentSize = parseInt(config.fontSize, 10);
+            function applyFontSize() { rendition.themes.fontSize(currentSize + '%'); }
+            fontDown.addEventListener('click', function () { currentSize = Math.max(80, currentSize - 10); applyFontSize(); });
+            fontUp.addEventListener('click', function () { currentSize = Math.min(200, currentSize + 10); applyFontSize(); });
+
+            function showError(msg) { statusEl.classList.add('error'); statusEl.innerHTML = '<div>' + msg + '</div>'; }
+        })();
+    </script>
+</body>
+</html>

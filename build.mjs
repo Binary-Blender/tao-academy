@@ -18,7 +18,7 @@
 // ============================================================
 
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, readdirSync, statSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,6 +29,17 @@ const DIST = join(__dirname, 'dist');
 const MAIN_SITE = 'https://www.binary-blender.com';
 const APPS_URL  = `${MAIN_SITE}/apps.html`;
 const SHOP_URL = 'https://www.binary-blender.com/shop';
+
+// Filled in by renderCourse: { slug: { title, rawTitle, file, back, fontSize } } — baked into read.html.
+const BOOKS = {};
+
+// Courses whose textbook lives outside a Textbook/ folder (so auto-detect misses
+// it) but is an unambiguous 1:1 match. Path relative to _Skool.
+const MANUAL_TEXTBOOKS = {
+  'cognition-systems-engineering': 'Textbooks/Cognition Systems Engineering/CSE Textbook/cognition_systems_engineering.epub',
+  'the-one-person-enterprise': 'AI Business School/The One-Person Enterprise/the_one_person_enterprise.epub',
+  'ai-creative-direction': 'AI Art Textbooks/AI Creative Director Textbook/the_ai_creative_director.epub',
+};
 
 // --- Programs to scan, in catalog order. The label is what the visitor sees. ---
 const PROGRAMS = [
@@ -96,6 +107,20 @@ function isCourseDir(dir) {
   let entries; try { entries = readdirSync(dir); } catch { return false; }
   return entries.includes('index.html') && entries.some((f) => /^module_\d+.*\.html$/i.test(f));
 }
+// Find a companion textbook: a Textbook/ (or textbook/) folder holding an .epub,
+// either inside the course dir or beside it (the course often sits at <X>/course
+// while the book sits at <X>/Textbook). Returns { absEpub, filename } or null.
+function findTextbook(courseDir) {
+  for (const base of [courseDir, dirname(courseDir)]) {
+    let entries; try { entries = readdirSync(base, { withFileTypes: true }); } catch { continue; }
+    const tb = entries.find((e) => e.isDirectory() && /^textbook$/i.test(e.name));
+    if (!tb) continue;
+    const dir = join(base, tb.name);
+    let epub; try { epub = readdirSync(dir).find((f) => /\.epub$/i.test(f)); } catch { continue; }
+    if (epub) return { absEpub: join(dir, epub), filename: epub };
+  }
+  return null;
+}
 function discover(program, usedSlugs) {
   const root = join(SKOOL, program.dir);
   const courses = [];
@@ -124,6 +149,8 @@ function makeCourse(program, srcAbs, usedSlugs) {
     level: levelFor(segments),
     title: shortTitle(rawTitle),
     blurb: blurbFrom(idxHtml),
+    textbook: findTextbook(srcAbs) ||
+      (MANUAL_TEXTBOOKS[slug] ? { absEpub: join(SKOOL, MANUAL_TEXTBOOKS[slug]), filename: basename(MANUAL_TEXTBOOKS[slug]) } : null),
   };
 }
 
@@ -139,7 +166,7 @@ function nav(root, active) {
     ${a(`${root}index.html`, 'Courses', active === 'home' ? 'active' : '')}
     ${a(APPS_URL, 'Free Apps')}
     ${a(MAIN_SITE, 'Binary Blender ↗')}
-    ${a(SHOP_URL, 'Book a Build Day', 'nav-cta')}
+    ${a(SHOP_URL, 'Shop', 'nav-cta')}
   </div>
 </nav>`;
 }
@@ -151,7 +178,7 @@ function footer(root) {
       <a href="${root}index.html">All Courses</a>
       <a href="${APPS_URL}">Free Apps</a>
       <a href="${MAIN_SITE}">Binary Blender</a>
-      <a href="${SHOP_URL}">Book a Build Day</a>
+      <a href="${SHOP_URL}">Shop</a>
       <a href="mailto:chrisbender999@gmail.com">Contact</a>
     </div>
   </div>
@@ -183,7 +210,7 @@ function lessonCta() {
   return `<div class="lesson-cta">
   <h3>Want this run inside your team?</h3>
   <p>The courses are free forever. When you're ready to put it into production, we build a custom AI-powered app on your hardware in a day.</p>
-  <a href="${SHOP_URL}" class="cta-button">Book a Build Day &mdash; $4,890</a>
+  <a href="${SHOP_URL}" class="cta-button">Visit the Shop</a>
 </div>`;
 }
 
@@ -221,9 +248,40 @@ function renderCourse(course) {
     } catch { /* referenced but absent in source → stays out of validRel, link unwrapped */ }
   }
 
+  // Companion textbook — copy the EPUB in, register it for the reader, and
+  // surface Read-online / Download buttons at the top of the course landing.
+  let textbookCard = '';
+  if (course.textbook) {
+    // Use a distinct `book/` dir (not `textbook/`) so a case-insensitive local FS
+    // can't collide it with a module-linked `Textbook/` copy — which would break
+    // the manifest path on case-sensitive Cloudflare.
+    const outEpub = join(outDir, 'book', course.textbook.filename);
+    ensureDir(dirname(outEpub));
+    copyFileSync(course.textbook.absEpub, outEpub);
+    BOOKS[course.slug] = {
+      title: `${course.title} <em>&mdash; the textbook</em>`,
+      rawTitle: course.title,
+      file: `courses/${course.slug}/book/${course.textbook.filename}`,
+      back: { href: `courses/${course.slug}/index.html`, label: course.title },
+      fontSize: '110%',
+    };
+    textbookCard = `<div class="textbook-card">
+    <div class="tb-icon">📖</div>
+    <div class="tb-meta">
+      <span class="tb-label">Companion textbook</span>
+      <span class="tb-title">${course.title} &mdash; The Complete Textbook</span>
+    </div>
+    <div class="tb-actions">
+      <a class="cta-button" href="${root}read.html?course=${course.slug}">Read online</a>
+      <a class="cta-button outline" href="book/${course.textbook.filename}" download>Download EPUB</a>
+    </div>
+  </div>`;
+  }
+
   // Course landing — source index.html body, neutralized.
   const landingMain = `<div class="reading-shell">
   <div class="breadcrumb"><a href="${root}index.html">TAO Academy</a> &rsaquo; <span>${course.program}</span> &rsaquo; ${course.title}</div>
+  ${textbookCard}
   <article class="reading">${neutralize(bodyOf(idxHtml), validRel)}</article>
   ${lessonCta()}
 </div>`;
@@ -298,7 +356,7 @@ function renderCatalog(byProgram, totals) {
   <h2>Free to learn. Built to deploy.</h2>
   <p>The Academy teaches the method. When you're ready to put it into production, we build a custom AI-powered app &mdash; on open-source models, on your hardware, yours to keep &mdash; in a single day.</p>
   <div class="cta-buttons">
-    <a href="${SHOP_URL}" class="cta-button">Book a Build Day &mdash; $4,890</a>
+    <a href="${SHOP_URL}" class="cta-button">Visit the Shop</a>
     <a href="${APPS_URL}" class="cta-button outline">Browse the free apps</a>
   </div>
 </section>`;
@@ -315,6 +373,9 @@ function main() {
   ensureDir(DIST);
   copyFileSync(join(__dirname, 'src', 'academy.css'), join(DIST, 'academy.css'));
   copyFileSync(join(__dirname, 'src', 'staticwebapp.config.json'), join(DIST, 'staticwebapp.config.json'));
+  ensureDir(join(DIST, 'vendor'));
+  for (const f of ['epub.min.js', 'jszip.min.js'])
+    copyFileSync(join(__dirname, 'src', 'vendor', f), join(DIST, 'vendor', f));
 
   const usedSlugs = new Set();
   const byProgram = new Map();
@@ -331,8 +392,13 @@ function main() {
   }
   const totals = { courses: courseCount, lessons: lessonCount, programs: PROGRAMS.filter((p) => (byProgram.get(p.label) || []).length).length };
   renderCatalog(byProgram, totals);
+
+  // Bake the textbook manifest into the reader.
+  const readerTpl = readFileSync(join(__dirname, 'src', 'read.html'), 'utf8');
+  writeFileSync(join(DIST, 'read.html'), readerTpl.replace('__BOOKS_MANIFEST__', JSON.stringify(BOOKS)));
+
   console.log(`\nTAO Academy built → dist/`);
-  console.log(`  ${totals.courses} courses, ${totals.lessons} lessons, ${totals.programs} programs.`);
+  console.log(`  ${totals.courses} courses, ${totals.lessons} lessons, ${totals.programs} programs, ${Object.keys(BOOKS).length} textbooks.`);
 }
 
 main();

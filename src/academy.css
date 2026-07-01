@@ -219,6 +219,28 @@ footer { background: #0b1320; color: #cbd5e1; padding: 3rem 8% 2rem; }
 .reading .module-list.expert li { border-left-color: #7c5cff; background: #f1eeff; }
 .reading .module-list.expert li a { color: #7c5cff; }
 
+/* ---- Companion textbook card (course landing) ---- */
+.textbook-card {
+    display: flex; align-items: center; gap: 1.1rem;
+    max-width: var(--read-width); margin: 0 auto 0.5rem;
+    padding: 1.1rem 1.3rem; border-radius: 12px;
+    background: linear-gradient(135deg, #eef7ff, #f5faff); border: 1px solid #d6e9fb;
+}
+.textbook-card .tb-icon { font-size: 1.8rem; line-height: 1; }
+.textbook-card .tb-meta { flex: 1; min-width: 0; }
+.textbook-card .tb-label { display: block; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-color); }
+.textbook-card .tb-title { display: block; font-weight: 600; color: var(--primary-color); }
+.textbook-card .tb-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+.textbook-card .cta-button { padding: 0.6rem 1.1rem; font-size: 0.9rem; }
+.textbook-card .cta-button.outline { background: #fff; border-color: #bcd6ee; color: var(--accent-color); }
+.textbook-card .cta-button.outline:hover { background: #f0f7ff; color: var(--secondary-blue); }
+@media (max-width: 620px) {
+    .textbook-card { flex-wrap: wrap; }
+    .textbook-card .tb-actions { width: 100%; }
+    .textbook-card .tb-actions .cta-button { flex: 1; text-align: center; }
+}
+
 /* ---- Lesson prev/next nav ---- */
 .lesson-nav {
     max-width: var(--read-width); margin: 2rem auto 0;
