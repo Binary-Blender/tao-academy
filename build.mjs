@@ -379,9 +379,15 @@ function renderCatalog(byProgram, totals) {
   </div>
 </section>`;
 
+  const mbaRankRender = (slug) => { const i = AI_MBA_ORDER.indexOf(slug); return i === -1 ? AI_MBA_ORDER.length : i; };
   const programSection = (p) => {
+    const isMBA = p.label === 'The AI MBA';
     const courses = (byProgram.get(p.label) || []).slice()
-      .sort((a, b) => featuredRank(a.slug) - featuredRank(b.slug) || a.level.rank - b.level.rank || a.title.localeCompare(b.title));
+      .sort((a, b) =>
+        isMBA
+          ? mbaRankRender(a.slug) - mbaRankRender(b.slug)
+          : featuredRank(a.slug) - featuredRank(b.slug) || a.level.rank - b.level.rank || a.title.localeCompare(b.title)
+      );
     if (!courses.length) return '';
     return `<div class="program-block">
     <div class="program-label">${p.label}</div>
