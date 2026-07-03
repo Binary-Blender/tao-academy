@@ -36,7 +36,7 @@ a:hover { color: var(--secondary-blue); }
 /* ---- Navigation (mirrors BB nav.js output) ---- */
 nav {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 1.25rem 8%; background: #031e1a; position: relative;
+    padding: 1.25rem 5%; background: #031e1a; position: relative;
     width: 100%; z-index: 1000;
     border-bottom: 1px solid rgba(16, 185, 129, 0.18);
 }
