@@ -267,6 +267,7 @@ function page({ root, title, active = '', main }) {
 <title>${title}</title>
 <link rel="stylesheet" href="${root}academy.css">
 <script src="https://binary-blender.com/portfolio-switch.js" defer></script>
+<script src="https://binary-blender.com/announcement-bar.js" defer></script>
 </head>
 <body>
 ${nav(root, active)}
