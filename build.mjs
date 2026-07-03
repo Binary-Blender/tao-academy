@@ -163,13 +163,16 @@ function makeCourse(program, srcAbs, usedSlugs) {
 // ---------------------------------------------------------------
 function nav(root, active) {
   const a = (href, label, cls = '') => `<a href="${href}"${cls ? ` class="${cls}"` : ''}>${label}</a>`;
+  // The <div data-portfolio-switch> gets replaced by the shared portfolio
+  // switcher loaded from binary-blender.com/portfolio-switch.js — see
+  // <head> injection in page(). The old "Binary Blender ↗" nav link is
+  // pulled since the switcher already surfaces the family.
   return `<nav>
-  <div class="logo" onclick="window.location.href='${root}index.html'">TAO Academy<small>by Binary Blender</small></div>
+  <div data-portfolio-switch></div>
   <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
   <div class="nav-links">
     ${a(`${root}index.html`, 'Courses', active === 'home' ? 'active' : '')}
     ${a(APPS_URL, 'Free Apps')}
-    ${a(MAIN_SITE, 'Binary Blender ↗')}
     ${a(SHOP_URL, 'Shop', 'nav-cta')}
   </div>
 </nav>`;
@@ -197,6 +200,7 @@ function page({ root, title, active = '', main }) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title}</title>
 <link rel="stylesheet" href="${root}academy.css">
+<script src="https://binary-blender.com/portfolio-switch.js" defer></script>
 </head>
 <body>
 ${nav(root, active)}
