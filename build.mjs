@@ -46,12 +46,38 @@ const MANUAL_TEXTBOOKS = {
 const FEATURED_PATH = ['mastering-ai-prompts', 'how-to-use-your-strategic-ai', 'stop-being-the-bottleneck'];
 
 // --- Programs to scan, in catalog order. The label is what the visitor sees. ---
+// The 'Team AI Outreach' folder is displayed as 'The AI MBA' — that's the
+// AI WIN-WIN Institute's public brand for this business-focused ladder. See
+// aiwinwin.binary-blender.com/ai-mba for the marketing surface / track map.
 const PROGRAMS = [
   { dir: 'Tactical AI Orchestration', label: 'Tactical AI Orchestration', blurb: 'The flagship program — building, creating, and orchestrating with AI, from first prompt to frontier technique.' },
-  { dir: 'Team AI Outreach', label: 'Team AI Outreach', blurb: 'Turn what you know into an AI-powered business — launch, operate, and multiply.' },
+  { dir: 'Team AI Outreach', label: 'The AI MBA', blurb: 'The AI WIN-WIN Institute’s business curriculum. Twenty-four courses across eight tracks in groups of three — launch, operate, compound, then fork into a people path or a content path.' },
   { dir: 'Theatrical AI Output', label: 'Theatrical AI Output', blurb: 'The AI-native creator studio — produce video, sound, and a content engine that runs without you.' },
   { dir: 'AI Business School', label: 'AI Business School', blurb: 'Run a one-person enterprise with AI doing the heavy lifting.' },
   { dir: 'AI Creative Direction', label: 'AI Creative Direction', blurb: 'Direct AI like a creative lead — taste, judgment, and a house style.' },
+];
+
+// The AI MBA is ordered by track/ladder, not alphabetically. This list is
+// the source of truth for course order within that program; it mirrors the
+// 24-course sequence rendered at aiwinwin.binary-blender.com/ai-mba. If a
+// course exists in the folder but isn't listed here, it falls to the end.
+const AI_MBA_ORDER = [
+  // Track 0 · Promote (warm-up)
+  'the-promotion', 'the-decision-stack', 'the-executive-operating-system',
+  // Track 1 · Launch
+  'document-your-expertise', 'your-first-ai-powered-offer', 'marketing-assets-in-a-weekend',
+  // Track 2 · Operate
+  'stop-doing-everything-yourself', 'client-delivery-at-scale', 'content-that-runs-without-you',
+  // Track 3 · Compound
+  'think-like-a-strategist', 'build-once-sell-forever', 'the-one-person-empire',
+  // Track 4 · Multiply (People path)
+  'transform-mindset-and-roles', 'augment-your-team-with-ai', 'optimize-for-impact',
+  // Track 4 · Produce (Content path)
+  'the-content-production-system', 'video-that-sells', 'the-one-person-studio',
+  // Track 5 · Publish
+  'the-book-you-already-wrote', 'the-knowledge-product', 'the-publishing-business',
+  // Track 6 · Master
+  'the-codes', 'the-judgment-layer', 'the-compound-operator',
 ];
 
 // Free/Premium/VIP → neutral level labels (everything on TAO Academy is free).
@@ -413,8 +439,23 @@ function main() {
   const byProgram = new Map();
   let courseCount = 0, lessonCount = 0;
 
-  for (const p of PROGRAMS) {
-    const courses = discover(p, usedSlugs).sort((a, b) => a.level.rank - b.level.rank || a.title.localeCompare(b.title));
+  const mbaRank = (slug) => { const i = AI_MBA_ORDER.indexOf(slug); return i === -1 ? AI_MBA_ORDER.length : i; };
+
+  // DISCOVERY order ≠ DISPLAY order. Walk The AI MBA first so its slugs
+  // (the-book-you-already-wrote, the-codes) take priority over stale
+  // duplicates that exist under Tactical AI Orchestration. Display order
+  // still follows the PROGRAMS array via renderCatalog's PROGRAMS.map.
+  const discoveryOrder = [
+    ...PROGRAMS.filter((p) => p.label === 'The AI MBA'),
+    ...PROGRAMS.filter((p) => p.label !== 'The AI MBA'),
+  ];
+  for (const p of discoveryOrder) {
+    const isMBA = p.label === 'The AI MBA';
+    const courses = discover(p, usedSlugs).sort((a, b) =>
+      isMBA
+        ? mbaRank(a.slug) - mbaRank(b.slug)
+        : a.level.rank - b.level.rank || a.title.localeCompare(b.title)
+    );
     byProgram.set(p.label, courses);
     for (const c of courses) {
       const n = renderCourse(c);
