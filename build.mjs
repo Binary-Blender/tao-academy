@@ -57,10 +57,15 @@ const PROGRAMS = [
   { dir: 'AI Creative Direction', label: 'AI Creative Direction', blurb: 'Direct AI like a creative lead — taste, judgment, and a house style.' },
 ];
 
-// The AI MBA is ordered by track/ladder, not alphabetically. This list is
-// the source of truth for course order within that program; it mirrors the
-// 24-course sequence rendered at aiwinwin.binary-blender.com/ai-mba. If a
-// course exists in the folder but isn't listed here, it falls to the end.
+// Two programs are ordered by track/ladder, not alphabetically:
+//   - The AI MBA (aiwinwin.binary-blender.com/ai-mba)
+//   - Theatrical AI Output (algorithmic-arts.binary-blender.com/tao)
+// The lists below are the source of truth for course order within each
+// program. If a course exists in the folder but isn't listed here, it
+// falls to the end. PROGRAM_ORDERS maps label → order array so the sort
+// logic in both the discovery loop and programSection can look up which
+// program (if any) needs a track order.
+
 const AI_MBA_ORDER = [
   // Track 0 · Promote (warm-up)
   'the-promotion', 'the-decision-stack', 'the-executive-operating-system',
@@ -79,6 +84,41 @@ const AI_MBA_ORDER = [
   // Track 6 · Master
   'the-codes', 'the-judgment-layer', 'the-compound-operator',
 ];
+
+const THEATRICAL_AI_OUTPUT_ORDER = [
+  // Track 0 · Speed Run (warm-up)
+  'innovator-or-hater', 'the-100-video-problem', 'find-your-voice',
+  // Track 1 · Production Studio
+  'sound-design-for-youtubers', 'visual-firepower', 'the-complete-video-pipeline',
+  // Track 2 · Content Engine
+  'the-ideation-machine', 'ai-as-your-writing-room', 'batch-production',
+  // Track 3 · Business
+  'packaging-that-earns-the-click', 'growth-and-monetization', 'the-sustainable-creator',
+  // Track 4 · Advanced Production (Pro path)
+  'retention-mastery', 'multi-model-orchestration', 'the-creators-studio',
+  // Track 5 · Expand (Pro path)
+  'the-book-you-already-made', 'course-products-for-creators', 'the-multi-platform-empire',
+  // Track 6 · Master (Pro path)
+  'the-creators-code', 'taste-and-judgment', 'the-compound-creator',
+  // Track 4 · Punk Rock AI (VIP path — the fast fork)
+  'the-manifesto', 'the-toolkit', 'the-zine',
+];
+
+const PROGRAM_ORDERS = {
+  'The AI MBA': AI_MBA_ORDER,
+  'Theatrical AI Output': THEATRICAL_AI_OUTPUT_ORDER,
+};
+
+// Return a rank(slug) function for label, or null if the program uses the
+// default level+alpha sort. Missing slugs sort to the end of the list.
+function programRank(label) {
+  const order = PROGRAM_ORDERS[label];
+  if (!order) return null;
+  return (slug) => {
+    const i = order.indexOf(slug);
+    return i === -1 ? order.length : i;
+  };
+}
 
 // Free/Premium/VIP → neutral level labels (everything on TAO Academy is free).
 const LEVELS = [
@@ -379,13 +419,12 @@ function renderCatalog(byProgram, totals) {
   </div>
 </section>`;
 
-  const mbaRankRender = (slug) => { const i = AI_MBA_ORDER.indexOf(slug); return i === -1 ? AI_MBA_ORDER.length : i; };
   const programSection = (p) => {
-    const isMBA = p.label === 'The AI MBA';
+    const rank = programRank(p.label);
     const courses = (byProgram.get(p.label) || []).slice()
       .sort((a, b) =>
-        isMBA
-          ? mbaRankRender(a.slug) - mbaRankRender(b.slug)
+        rank
+          ? rank(a.slug) - rank(b.slug)
           : featuredRank(a.slug) - featuredRank(b.slug) || a.level.rank - b.level.rank || a.title.localeCompare(b.title)
       );
     if (!courses.length) return '';
@@ -445,8 +484,6 @@ function main() {
   const byProgram = new Map();
   let courseCount = 0, lessonCount = 0;
 
-  const mbaRank = (slug) => { const i = AI_MBA_ORDER.indexOf(slug); return i === -1 ? AI_MBA_ORDER.length : i; };
-
   // DISCOVERY order ≠ DISPLAY order. Walk The AI MBA first so its slugs
   // (the-book-you-already-wrote, the-codes) take priority over stale
   // duplicates that exist under Tactical AI Orchestration. Display order
@@ -456,10 +493,10 @@ function main() {
     ...PROGRAMS.filter((p) => p.label !== 'The AI MBA'),
   ];
   for (const p of discoveryOrder) {
-    const isMBA = p.label === 'The AI MBA';
+    const rank = programRank(p.label);
     const courses = discover(p, usedSlugs).sort((a, b) =>
-      isMBA
-        ? mbaRank(a.slug) - mbaRank(b.slug)
+      rank
+        ? rank(a.slug) - rank(b.slug)
         : a.level.rank - b.level.rank || a.title.localeCompare(b.title)
     );
     byProgram.set(p.label, courses);
