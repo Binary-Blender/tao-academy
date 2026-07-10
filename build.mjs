@@ -144,6 +144,26 @@ function programRank(label) {
   };
 }
 
+// The Bookshelf — finished books that have no course of their own (the
+// orphaned capstones, the leadership trilogy, the practitioner companions).
+// Each is copied in and registered with the reader; read.html?course=<slug>
+// opens it. Path is relative to _Skool. (Books that ARE a course's companion —
+// CSE, One-Person Enterprise, Creative Direction — stay with their course.)
+const EXTRA_BOOKS = [
+  { slug: 'resonance-engineering', shelf: 'The Capstone — the graduate spine', title: 'Resonance Engineering', blurb: 'The third craft after prompt and context engineering — composing the whole interaction as one instrument.', epub: 'Textbooks/Resonance Engineering/resonance_engineering.epub' },
+  { slug: 'agicore-book', shelf: 'The Capstone — the graduate spine', title: 'Agicore: Theory, Architecture, Practice', blurb: 'The runtime and the harness — AI at build time, determinism at runtime; the Andon Loop in code.', epub: 'Textbooks/Agicore/Agicore Textbook/agicore_theory_architecture_practice.epub' },
+  { slug: 'the-ai-multiplication-doctrine', shelf: 'The Leadership Trilogy — for orgs', title: 'The AI Multiplication Doctrine', blurb: 'Multiply your people, don’t replace them — the leadership doctrine of the whole methodology (Good to 10x).', epub: 'Textbooks/Good to 10x/the_ai_multiplication_doctrine.epub' },
+  { slug: 'old-ideas-new-substrate', shelf: 'The Leadership Trilogy — for orgs', title: 'Old Ideas, New Substrate', blurb: 'The management theories that finally work now that AI is the floor.', epub: 'Textbooks/Old Ideas Revisited with AI/old_ideas_new_substrate.epub' },
+  { slug: 'the-blueprint-audit-book', shelf: 'The Leadership Trilogy — for orgs', title: 'The Blueprint Audit', blurb: 'Diagnose the bottleneck, match a proven framework, deploy it on AI — the field manual.', epub: 'Textbooks/The Blueprint Audit/the_blueprint_audit.epub' },
+  { slug: 'seven-habits', shelf: 'The Practitioner Library — the flagship’s companions', title: 'Seven Habits of Highly Effective AI Engineers', blurb: 'AI effectiveness as character, not technique — the flagship’s primary companion book.', epub: 'Textbooks/The Seven Habits of Highly Effective AI Engineers/the_seven_habits_of_highly_effective_ai_engineers.epub' },
+  { slug: 'atomic-ai-book', shelf: 'The Practitioner Library — the flagship’s companions', title: 'Atomic AI', blurb: 'Tiny compounding systems — skill docs, the $20/$200 audit, the daily-practice workbook.', epub: 'Textbooks/Atomic AI/atomic_ai.epub' },
+  { slug: 'the-ai-mindset-book', shelf: 'The Practitioner Library — the flagship’s companions', title: 'The AI Mindset', blurb: 'Fixed vs. growth beliefs about AI — the orientation everything else builds on.', epub: 'Textbooks/The AI Mindset/the_ai_mindset.epub' },
+  { slug: 'the-gen-x-layer', shelf: 'The Craft & Culture — enrichment', title: 'The Gen-X Layer', blurb: 'Why early-PC culture is AI’s cognitive substrate — companion reading.', epub: 'Textbooks/The Gen-X Layer/Gen-X Layer Textbook/the_gen_x_layer.epub' },
+  { slug: 'cultural-mining', shelf: 'The Craft & Culture — enrichment', title: 'Cultural Mining', blurb: 'Extract and productize a living tradition — the ten-step method.', epub: 'Textbooks/Cultural Mining/cultural_mining.epub' },
+  { slug: 'the-resonance-engineered-studio', shelf: 'The Craft & Culture — enrichment', title: 'The Resonance-Engineered Studio', blurb: 'The 3–7-person studio that beats the 100-person agency — the business model behind the craft.', epub: 'Textbooks/The Resonance-Engineered Studio/the_resonance_engineered_studio.epub' },
+  { slug: 'win-friends-online', shelf: 'The Craft & Culture — enrichment', title: 'How to Win Friends & Influence People Online', blurb: 'Carnegie for the attention economy — influence, algorithms, and audience.', epub: 'Textbooks/How to Win Friends and Influence People Online/how_to_win_friends_online.epub' },
+];
+
 // Free/Premium/VIP → neutral level labels (everything on TAO Academy is free).
 const LEVELS = [
   { match: /vip/i,            label: 'Mastery',     rank: 2 },
@@ -261,6 +281,7 @@ function nav(root, active) {
   <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
   <div class="nav-links">
     ${a(`${root}index.html`, 'Courses', active === 'home' ? 'active' : '')}
+    ${a(`${root}index.html#bookshelf`, 'Books')}
     ${a(APPS_URL, 'Free Apps')}
     ${a(SHOP_URL, 'Shop', 'nav-cta')}
   </div>
@@ -526,6 +547,38 @@ function renderCatalog(byProgram, totals) {
   </div>`;
   };
 
+  const shelfNames = [...new Set(EXTRA_BOOKS.map((b) => b.shelf))];
+  const bookCard = (b) => `<div class="book-card">
+        <div class="bk-icon">📖</div>
+        <div class="bk-body">
+          <h3>${b.title}</h3>
+          <p>${b.blurb}</p>
+          <div class="bk-actions">
+            <a class="cta-button" href="read.html?course=${b.slug}">Read online</a>
+            <a class="cta-button outline" href="books/${b.slug}/${basename(b.epub)}" download>EPUB</a>
+          </div>
+        </div>
+      </div>`;
+  const bookshelf = `<section class="section" id="bookshelf">
+  <style>
+    .book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;}
+    .book-card{display:flex;gap:.9rem;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1.1rem 1.2rem;}
+    .book-card .bk-icon{font-size:1.5rem;line-height:1;}
+    .book-card h3{margin:0 0 .3rem;font-size:1.02rem;}
+    .book-card p{margin:0 0 .8rem;color:#555;font-size:.9rem;line-height:1.5;}
+    .book-card .bk-actions{display:flex;gap:.5rem;flex-wrap:wrap;}
+    .book-card .cta-button{padding:.42rem .8rem;font-size:.85rem;}
+  </style>
+  <h2>The Bookshelf</h2>
+  <p class="section-subtitle">The finished books behind the courses &mdash; read any of them free in your browser, or take the EPUB. The graduate theory, the leadership trilogy, and the practitioner companions.</p>
+  ${shelfNames.map((sh) => `<div class="subsection">
+    <h3 class="subsection-label">${sh}</h3>
+    <div class="book-grid">
+      ${EXTRA_BOOKS.filter((b) => b.shelf === sh).map(bookCard).join('\n      ')}
+    </div>
+  </div>`).join('\n  ')}
+</section>`;
+
   const main = `<section class="hero">
   <span class="hero-eyebrow">Free Training from Binary Blender</span>
   <h1><span class="highlight">TAO Academy</span></h1>
@@ -550,6 +603,8 @@ ${startHere}
   <p class="section-subtitle">Everything is free, forever &mdash; a library being given away, not a product being sold. ${totals.courses} courses across ${totals.programs} programs, ${totals.lessons} lessons in total.</p>
   ${PROGRAMS.map(programSection).join('\n  ')}
 </section>
+
+${bookshelf}
 
 <section class="funnel-band">
   <h2>Free to learn. Built to deploy.</h2>
@@ -602,6 +657,15 @@ function main() {
       console.log(`  ${c.program} / ${c.level.label} / ${c.title}  (${n})`);
     }
   }
+  // The Bookshelf — copy each orphaned book in and register it with the reader.
+  for (const b of EXTRA_BOOKS) {
+    const filename = basename(b.epub);
+    const outEpub = join(DIST, 'books', b.slug, filename);
+    ensureDir(dirname(outEpub));
+    try { copyFileSync(join(SKOOL, b.epub), outEpub); } catch { console.log(`  ! bookshelf: missing ${b.epub}`); continue; }
+    BOOKS[b.slug] = { title: b.title, rawTitle: b.title, file: `books/${b.slug}/${filename}`, back: { href: 'index.html#bookshelf', label: 'The Bookshelf' }, fontSize: '110%' };
+  }
+
   const totals = { courses: courseCount, lessons: lessonCount, programs: PROGRAMS.filter((p) => (byProgram.get(p.label) || []).length).length };
   renderCatalog(byProgram, totals);
 
