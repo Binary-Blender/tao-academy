@@ -50,7 +50,7 @@ const FEATURED_PATH = ['mastering-ai-prompts', 'how-to-use-your-strategic-ai', '
 // AI WIN-WIN Institute's public brand for this business-focused ladder. See
 // aiwinwin.binary-blender.com/ai-mba for the marketing surface / track map.
 const PROGRAMS = [
-  { dir: 'Tactical AI Orchestration', label: 'Tactical AI Orchestration', blurb: 'The flagship program — building, creating, and orchestrating with AI, from first prompt to frontier technique.' },
+  { dir: 'Tactical AI Orchestration', label: 'Tactical AI Orchestration', blurb: 'The flagship and its orbit — the TAO methodology itself, the core techniques (prompt craft, strategy, orchestration), and the graduate-level theory that grounds it: Cognition Systems Engineering, the Formless Response, Mind Breeding.' },
   { dir: 'Team AI Outreach', label: 'The AI MBA', blurb: 'The AI WIN-WIN Institute’s business curriculum. Twenty-four courses across eight tracks in groups of three — launch, operate, compound, then fork into a people path or a content path.' },
   { dir: 'Theatrical AI Output', label: 'Theatrical AI Output', blurb: 'The AI-native creator studio — produce video, sound, and a content engine that runs without you.' },
   { dir: 'AI Business School', label: 'AI Business School', blurb: 'Run a one-person enterprise with AI doing the heavy lifting.' },
@@ -412,9 +412,47 @@ function renderCatalog(byProgram, totals) {
         </span>
       </a>`;
   };
+  // The flagship feature — the TAO course, elevated and framed by the four
+  // readings of its own name (the four tiers). This is the front door.
+  const flagshipCourse = bySlug.get('tao');
+  const flagshipLessons = flagshipCourse ? flagshipCourse.modules : 27;
+  const tierRows = [
+    ['1', 'Think &middot; Attune &middot; Observe', 'Be the practitioner &mdash; the daily operating system.'],
+    ['2', 'Tactical AI Orchestration', 'Build the systems &mdash; the eight production principles.'],
+    ['3', 'Transform &middot; Augment &middot; Optimize', 'Lead the org &mdash; multiplication, not replacement.'],
+    ['4', 'The Mastery', 'The dark arts &amp; the formal spine.'],
+  ].map(([n, k, v]) => `<div class="ft"><span class="ft-n">${n}</span><span class="ft-t"><b>${k}</b><span>${v}</span></span></div>`).join('\n      ');
+  const flagship = `<section class="section flagship" id="flagship">
+  <style>
+    .flagship{background:linear-gradient(160deg,#08201c,#0d1524);color:#e6f2ef;border-radius:18px;padding:2.6rem 2rem;margin:1.4rem auto;max-width:1120px;}
+    .flagship .feyebrow{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:#2dd4bf;}
+    .flagship h2{color:#fff;font-size:clamp(1.6rem,4vw,2.1rem);margin:.5rem 0 .5rem;letter-spacing:-.01em;}
+    .flagship .fthesis{color:#a7c4bd;max-width:62ch;line-height:1.65;margin:0 0 1.6rem;}
+    .flagship .fthesis b{color:#7fe7d0;}
+    .flagship .ftiers{display:grid;grid-template-columns:repeat(2,1fr);gap:.7rem;margin:0 0 1.6rem;}
+    .flagship .ft{display:flex;gap:.7rem;align-items:flex-start;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.22);border-radius:10px;padding:.85rem .95rem;}
+    .flagship .ft-n{font-family:ui-monospace,Menlo,monospace;font-weight:700;color:#08201c;background:#2dd4bf;border-radius:6px;padding:.08rem .5rem;font-size:.8rem;flex:none;}
+    .flagship .ft-t b{display:block;color:#e6f2ef;font-size:.95rem;}
+    .flagship .ft-t>span{color:#8fb3ab;font-size:.85rem;line-height:1.45;}
+    .flagship .fbook{color:#7f9b94;font-size:.85rem;margin:1.1rem 0 0;}
+    .flagship .fbook em{color:#a7c4bd;font-style:italic;}
+    .flagship .cta-button{background:#2dd4bf;color:#08201c;border:none;font-weight:700;}
+    .flagship .cta-button:hover{background:#7fe7d0;}
+    @media(max-width:640px){.flagship .ftiers{grid-template-columns:1fr;}}
+  </style>
+  <span class="feyebrow">The Flagship</span>
+  <h2>Tactical AI Orchestration</h2>
+  <p class="fthesis">AI is a manufacturing problem &mdash; quality is built in at every stage, not inspected at the end. One methodology, taught as a daily practice, then built up into systems, leadership, and mastery: <b>four readings of its own name.</b></p>
+  <div class="ftiers">
+      ${tierRows}
+  </div>
+  <div class="cta-buttons"><a href="courses/tao/index.html" class="cta-button">Start the flagship &rarr; ${flagshipLessons} lessons</a></div>
+  <p class="fbook">Ships with the books <em>Seven Habits of Highly Effective AI Engineers</em> &amp; <em>Atomic AI</em>. Graduate track: <em>Cognition Systems Engineering</em>.</p>
+</section>`;
+
   const startHere = `<section class="section start-here" id="start">
-  <h2>New here? Start with these three.</h2>
-  <p class="section-subtitle">A foundational track, in order &mdash; prompt craft, then strategy, then getting the work off your plate. Do them in sequence, then branch into the full library below.</p>
+  <h2>Then &mdash; three on-ramps.</h2>
+  <p class="section-subtitle">Not sure where to branch after the flagship? Take these three in order &mdash; prompt craft, then strategy, then getting the work off your plate &mdash; and the rest of the library opens up.</p>
   <div class="path-row">
     ${FEATURED_PATH.map((s, i) => pathStep(s, i + 1)).join('\n    ')}
   </div>
@@ -441,12 +479,14 @@ function renderCatalog(byProgram, totals) {
   const main = `<section class="hero">
   <span class="hero-eyebrow">Free Training from Binary Blender</span>
   <h1><span class="highlight">TAO Academy</span></h1>
-  <p>The complete Tactical AI Orchestration library &mdash; ${totals.courses} courses and ${totals.lessons} lessons on building, creating, and shipping with AI. No signup. No paywall. No email gate. Just open one and start.</p>
+  <p>One flagship methodology and the library around it &mdash; ${totals.courses} courses, ${totals.lessons} lessons on orchestrating AI like a production system. No signup. No paywall. No email gate. Open one and start.</p>
   <div class="cta-buttons">
-    <a href="#start" class="cta-button">Start here</a>
+    <a href="#flagship" class="cta-button">Start with the flagship</a>
     <a href="#library" class="cta-button outline">Browse all courses</a>
   </div>
 </section>
+
+${flagship}
 
 ${startHere}
 
