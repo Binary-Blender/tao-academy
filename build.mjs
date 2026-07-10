@@ -35,11 +35,19 @@ const BOOKS = {};
 
 // Courses whose textbook lives outside a Textbook/ folder (so auto-detect misses
 // it) but is an unambiguous 1:1 match. Path relative to _Skool.
+// Value is an epub path (string), OR { path, title } when a course's companion
+// book carries a title different from the course title. Path is relative to _Skool.
 const MANUAL_TEXTBOOKS = {
   'cognition-systems-engineering': 'Textbooks/Cognition Systems Engineering/CSE Textbook/cognition_systems_engineering.epub',
   'the-one-person-enterprise': 'AI Business School/The One-Person Enterprise/the_one_person_enterprise.epub',
   'ai-creative-direction': 'AI Art Textbooks/AI Creative Director Textbook/the_ai_creative_director.epub',
 };
+function manualTextbook(slug) {
+  const mt = MANUAL_TEXTBOOKS[slug];
+  if (!mt) return null;
+  const path = typeof mt === 'string' ? mt : mt.path;
+  return { absEpub: join(SKOOL, path), filename: basename(path), title: typeof mt === 'object' ? mt.title : null };
+}
 
 // The curated on-ramp: foundational courses in increasing order. These lead the
 // catalog (a "Start Here" path) and sort first within their program block.
@@ -107,6 +115,22 @@ const THEATRICAL_AI_OUTPUT_ORDER = [
 const PROGRAM_ORDERS = {
   'The AI MBA': AI_MBA_ORDER,
   'Theatrical AI Output': THEATRICAL_AI_OUTPUT_ORDER,
+};
+
+// Curated sub-sections for the flagship program — turn its grab-bag into a
+// legible path: the core techniques, then the graduate-level capstone, then
+// applied craft. Any course in the program not listed here falls into a final
+// "More in this program" block, so nothing is ever lost. 'tao' is intentionally
+// omitted — it's the hero feature at the top of the page.
+const SUBSECTIONS = {
+  'Tactical AI Orchestration': [
+    { label: 'Core Techniques', blurb: 'The everyday practitioner skills — prompt craft, strategy, and getting the work off your plate.',
+      slugs: ['mastering-ai-prompts', 'how-to-use-your-strategic-ai', 'stop-being-the-bottleneck', 'skill-libraries-for-ai', 'multi-model-orchestration', 'building-with-claude-code'] },
+    { label: 'The Capstone · Synmatic', blurb: 'The graduate-level theory that grounds the practice — the formal spine of the methodology.',
+      slugs: ['cognition-systems-engineering', 'mind-breeding', 'the-formless-response', 'thin-the-veil-real-world-mmos', 'advanced-ambient-ai', 'ai-assisted-architecture', 'the-novasyn-dev-stacks'] },
+    { label: 'Applied Craft', blurb: 'The method turned on specific work — writing, building, shipping.',
+      slugs: ['romance-realms', 'software-assassination-service', 'the-archive-intensive', 'the-workshop'] },
+  ],
 };
 
 // Return a rank(slug) function for label, or null if the program uses the
@@ -219,8 +243,7 @@ function makeCourse(program, srcAbs, usedSlugs) {
     level: levelFor(segments),
     title: shortTitle(rawTitle),
     blurb: blurbFrom(idxHtml),
-    textbook: findTextbook(srcAbs) ||
-      (MANUAL_TEXTBOOKS[slug] ? { absEpub: join(SKOOL, MANUAL_TEXTBOOKS[slug]), filename: basename(MANUAL_TEXTBOOKS[slug]) } : null),
+    textbook: findTextbook(srcAbs) || manualTextbook(slug),
   };
 }
 
@@ -333,9 +356,10 @@ function renderCourse(course) {
     const outEpub = join(outDir, 'book', course.textbook.filename);
     ensureDir(dirname(outEpub));
     copyFileSync(course.textbook.absEpub, outEpub);
+    const bookTitle = course.textbook.title || course.title;
     BOOKS[course.slug] = {
-      title: `${course.title} <em>&mdash; the textbook</em>`,
-      rawTitle: course.title,
+      title: `${bookTitle} <em>&mdash; the textbook</em>`,
+      rawTitle: bookTitle,
       file: `courses/${course.slug}/book/${course.textbook.filename}`,
       back: { href: `courses/${course.slug}/index.html`, label: course.title },
       fontSize: '110%',
@@ -344,7 +368,7 @@ function renderCourse(course) {
     <div class="tb-icon">📖</div>
     <div class="tb-meta">
       <span class="tb-label">Companion textbook</span>
-      <span class="tb-title">${course.title} &mdash; The Complete Textbook</span>
+      <span class="tb-title">${bookTitle} &mdash; The Complete Textbook</span>
     </div>
     <div class="tb-actions">
       <a class="cta-button" href="${root}read.html?course=${course.slug}">Read online</a>
@@ -447,7 +471,7 @@ function renderCatalog(byProgram, totals) {
       ${tierRows}
   </div>
   <div class="cta-buttons"><a href="courses/tao/index.html" class="cta-button">Start the flagship &rarr; ${flagshipLessons} lessons</a></div>
-  <p class="fbook">Ships with the books <em>Seven Habits of Highly Effective AI Engineers</em> &amp; <em>Atomic AI</em>. Graduate track: <em>Cognition Systems Engineering</em>.</p>
+  <p class="fbook">Comes with its own textbook &mdash; <em>TAO: The Way of AI Orchestration</em> &mdash; plus the companion reads <em>Seven Habits of Highly Effective AI Engineers</em> &amp; <em>Atomic AI</em>. Graduate track: <em>Cognition Systems Engineering</em>.</p>
 </section>`;
 
   const startHere = `<section class="section start-here" id="start">
@@ -458,21 +482,47 @@ function renderCatalog(byProgram, totals) {
   </div>
 </section>`;
 
+  const gridBlock = (label, blurb, list) => `<div class="subsection">
+      <h3 class="subsection-label">${label}</h3>${blurb ? `\n      <p class="subsection-blurb">${blurb}</p>` : ''}
+      <div class="course-grid">
+        ${list.map(card).join('\n        ')}
+      </div>
+    </div>`;
+
   const programSection = (p) => {
     const rank = programRank(p.label);
     const courses = (byProgram.get(p.label) || []).slice()
+      .filter((c) => c.slug !== 'tao')   // the flagship is the hero feature above
       .sort((a, b) =>
         rank
           ? rank(a.slug) - rank(b.slug)
           : featuredRank(a.slug) - featuredRank(b.slug) || a.level.rank - b.level.rank || a.title.localeCompare(b.title)
       );
     if (!courses.length) return '';
+
+    let inner;
+    const subs = SUBSECTIONS[p.label];
+    if (subs) {
+      const placed = new Set();
+      const blocks = [];
+      for (const sub of subs) {
+        const list = sub.slugs.map((s) => bySlug.get(s)).filter((c) => c && c.program === p.label && !placed.has(c.slug));
+        list.forEach((c) => placed.add(c.slug));
+        if (list.length) blocks.push(gridBlock(sub.label, sub.blurb, list));
+      }
+      const rest = courses.filter((c) => !placed.has(c.slug));
+      if (rest.length) blocks.push(gridBlock('More in this program', '', rest));
+      inner = blocks.join('\n    ');
+    } else {
+      inner = `<div class="course-grid">
+      ${courses.map(card).join('\n      ')}
+    </div>`;
+    }
+
     return `<div class="program-block">
     <div class="program-label">${p.label}</div>
     <p class="program-blurb">${p.blurb}</p>
-    <div class="course-grid">
-      ${courses.map(card).join('\n      ')}
-    </div>
+    ${inner}
   </div>`;
   };
 
@@ -491,6 +541,11 @@ ${flagship}
 ${startHere}
 
 <section class="section" id="library">
+  <style>
+    .subsection{margin:1.5rem 0 .5rem;}
+    .subsection-label{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:#0f766e;font-weight:700;margin:1.4rem 0 .15rem;}
+    .subsection-blurb{color:#666;font-size:.92rem;margin:0 0 .9rem;max-width:62ch;}
+  </style>
   <h2>The Course Library</h2>
   <p class="section-subtitle">Everything is free, forever &mdash; a library being given away, not a product being sold. ${totals.courses} courses across ${totals.programs} programs, ${totals.lessons} lessons in total.</p>
   ${PROGRAMS.map(programSection).join('\n  ')}
