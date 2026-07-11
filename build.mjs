@@ -38,6 +38,7 @@ const BOOKS = {};
 // Value is an epub path (string), OR { path, title } when a course's companion
 // book carries a title different from the course title. Path is relative to _Skool.
 const MANUAL_TEXTBOOKS = {
+  'agicore': 'Textbooks/Agicore/Agicore Textbook/agicore_theory_architecture_practice.epub',
   'resonance-engineering': 'Textbooks/Resonance Engineering/resonance_engineering.epub',
   'cognition-systems-engineering': 'Textbooks/Cognition Systems Engineering/CSE Textbook/cognition_systems_engineering.epub',
   'the-one-person-enterprise': 'AI Business School/The One-Person Enterprise/the_one_person_enterprise.epub',
@@ -128,7 +129,7 @@ const SUBSECTIONS = {
     { label: 'Core Techniques', blurb: 'The everyday practitioner skills — prompt craft, strategy, and getting the work off your plate.',
       slugs: ['mastering-ai-prompts', 'how-to-use-your-strategic-ai', 'stop-being-the-bottleneck', 'skill-libraries-for-ai', 'multi-model-orchestration', 'building-with-claude-code'] },
     { label: 'The Capstone · Synmatic', blurb: 'The graduate-level theory that grounds the practice — the formal spine of the methodology.',
-      slugs: ['cognition-systems-engineering', 'semantic-systems-engineering', 'resonance-engineering', 'mind-breeding', 'the-formless-response', 'thin-the-veil-real-world-mmos', 'advanced-ambient-ai', 'ai-assisted-architecture', 'the-novasyn-dev-stacks'] },
+      slugs: ['cognition-systems-engineering', 'semantic-systems-engineering', 'resonance-engineering', 'agicore', 'mind-breeding', 'the-formless-response', 'thin-the-veil-real-world-mmos', 'advanced-ambient-ai', 'ai-assisted-architecture', 'the-novasyn-dev-stacks'] },
     { label: 'Applied Craft', blurb: 'The method turned on specific work — writing, building, shipping.',
       slugs: ['romance-realms', 'software-assassination-service', 'the-archive-intensive', 'the-workshop'] },
   ],
@@ -189,7 +190,6 @@ function programRank(label) {
 // opens it. Path is relative to _Skool. (Books that ARE a course's companion —
 // CSE, One-Person Enterprise, Creative Direction — stay with their course.)
 const EXTRA_BOOKS = [
-  { slug: 'agicore-book', shelf: 'The Capstone — the graduate spine', title: 'Agicore: Theory, Architecture, Practice', blurb: 'The runtime and the harness — AI at build time, determinism at runtime; the Andon Loop in code.', epub: 'Textbooks/Agicore/Agicore Textbook/agicore_theory_architecture_practice.epub' },
   { slug: 'the-ai-multiplication-doctrine', shelf: 'The Leadership Trilogy — for orgs', title: 'The AI Multiplication Doctrine', blurb: 'Multiply your people, don’t replace them — the leadership doctrine of the whole methodology (Good to 10x).', epub: 'Textbooks/Good to 10x/the_ai_multiplication_doctrine.epub' },
   { slug: 'old-ideas-new-substrate', shelf: 'The Leadership Trilogy — for orgs', title: 'Old Ideas, New Substrate', blurb: 'The management theories that finally work now that AI is the floor.', epub: 'Textbooks/Old Ideas Revisited with AI/old_ideas_new_substrate.epub' },
   { slug: 'the-blueprint-audit-book', shelf: 'The Leadership Trilogy — for orgs', title: 'The Blueprint Audit', blurb: 'Diagnose the bottleneck, match a proven framework, deploy it on AI — the field manual.', epub: 'Textbooks/The Blueprint Audit/the_blueprint_audit.epub' },
