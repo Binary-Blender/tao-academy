@@ -127,7 +127,7 @@ const SUBSECTIONS = {
     { label: 'Core Techniques', blurb: 'The everyday practitioner skills — prompt craft, strategy, and getting the work off your plate.',
       slugs: ['mastering-ai-prompts', 'how-to-use-your-strategic-ai', 'stop-being-the-bottleneck', 'skill-libraries-for-ai', 'multi-model-orchestration', 'building-with-claude-code'] },
     { label: 'The Capstone · Synmatic', blurb: 'The graduate-level theory that grounds the practice — the formal spine of the methodology.',
-      slugs: ['cognition-systems-engineering', 'mind-breeding', 'the-formless-response', 'thin-the-veil-real-world-mmos', 'advanced-ambient-ai', 'ai-assisted-architecture', 'the-novasyn-dev-stacks'] },
+      slugs: ['cognition-systems-engineering', 'semantic-systems-engineering', 'mind-breeding', 'the-formless-response', 'thin-the-veil-real-world-mmos', 'advanced-ambient-ai', 'ai-assisted-architecture', 'the-novasyn-dev-stacks'] },
     { label: 'Applied Craft', blurb: 'The method turned on specific work — writing, building, shipping.',
       slugs: ['romance-realms', 'software-assassination-service', 'the-archive-intensive', 'the-workshop'] },
   ],
