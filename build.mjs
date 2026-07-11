@@ -38,6 +38,7 @@ const BOOKS = {};
 // Value is an epub path (string), OR { path, title } when a course's companion
 // book carries a title different from the course title. Path is relative to _Skool.
 const MANUAL_TEXTBOOKS = {
+  'seven-habits': 'Textbooks/The Seven Habits of Highly Effective AI Engineers/the_seven_habits_of_highly_effective_ai_engineers.epub',
   'atomic-ai': 'Textbooks/Atomic AI/atomic_ai.epub',
   'agicore': 'Textbooks/Agicore/Agicore Textbook/agicore_theory_architecture_practice.epub',
   'resonance-engineering': 'Textbooks/Resonance Engineering/resonance_engineering.epub',
@@ -128,7 +129,7 @@ const PROGRAM_ORDERS = {
 const SUBSECTIONS = {
   'Tactical AI Orchestration': [
     { label: 'Core Techniques', blurb: 'The everyday practitioner skills — prompt craft, strategy, and getting the work off your plate.',
-      slugs: ['mastering-ai-prompts', 'how-to-use-your-strategic-ai', 'atomic-ai', 'stop-being-the-bottleneck', 'skill-libraries-for-ai', 'multi-model-orchestration', 'building-with-claude-code'] },
+      slugs: ['mastering-ai-prompts', 'how-to-use-your-strategic-ai', 'seven-habits', 'atomic-ai', 'stop-being-the-bottleneck', 'skill-libraries-for-ai', 'multi-model-orchestration', 'building-with-claude-code'] },
     { label: 'The Capstone · Synmatic', blurb: 'The graduate-level theory that grounds the practice — the formal spine of the methodology.',
       slugs: ['cognition-systems-engineering', 'semantic-systems-engineering', 'resonance-engineering', 'agicore', 'mind-breeding', 'the-formless-response', 'thin-the-veil-real-world-mmos', 'advanced-ambient-ai', 'ai-assisted-architecture', 'the-novasyn-dev-stacks'] },
     { label: 'Applied Craft', blurb: 'The method turned on specific work — writing, building, shipping.',
@@ -194,7 +195,6 @@ const EXTRA_BOOKS = [
   { slug: 'the-ai-multiplication-doctrine', shelf: 'The Leadership Trilogy — for orgs', title: 'The AI Multiplication Doctrine', blurb: 'Multiply your people, don’t replace them — the leadership doctrine of the whole methodology (Good to 10x).', epub: 'Textbooks/Good to 10x/the_ai_multiplication_doctrine.epub' },
   { slug: 'old-ideas-new-substrate', shelf: 'The Leadership Trilogy — for orgs', title: 'Old Ideas, New Substrate', blurb: 'The management theories that finally work now that AI is the floor.', epub: 'Textbooks/Old Ideas Revisited with AI/old_ideas_new_substrate.epub' },
   { slug: 'the-blueprint-audit-book', shelf: 'The Leadership Trilogy — for orgs', title: 'The Blueprint Audit', blurb: 'Diagnose the bottleneck, match a proven framework, deploy it on AI — the field manual.', epub: 'Textbooks/The Blueprint Audit/the_blueprint_audit.epub' },
-  { slug: 'seven-habits', shelf: 'The Practitioner Library — the flagship’s companions', title: 'Seven Habits of Highly Effective AI Engineers', blurb: 'AI effectiveness as character, not technique — the flagship’s primary companion book.', epub: 'Textbooks/The Seven Habits of Highly Effective AI Engineers/the_seven_habits_of_highly_effective_ai_engineers.epub' },
   { slug: 'the-ai-mindset-book', shelf: 'The Practitioner Library — the flagship’s companions', title: 'The AI Mindset', blurb: 'Fixed vs. growth beliefs about AI — the orientation everything else builds on.', epub: 'Textbooks/The AI Mindset/the_ai_mindset.epub' },
   { slug: 'the-gen-x-layer', shelf: 'The Craft & Culture — enrichment', title: 'The Gen-X Layer', blurb: 'Why early-PC culture is AI’s cognitive substrate — companion reading.', epub: 'Textbooks/The Gen-X Layer/Gen-X Layer Textbook/the_gen_x_layer.epub' },
   { slug: 'cultural-mining', shelf: 'The Craft & Culture — enrichment', title: 'Cultural Mining', blurb: 'Extract and productize a living tradition — the ten-step method.', epub: 'Textbooks/Cultural Mining/cultural_mining.epub' },
