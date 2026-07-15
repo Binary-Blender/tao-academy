@@ -305,6 +305,58 @@ function makeCourse(program, srcAbs, usedSlugs) {
   };
 }
 
+// Section landing pages promoted to their own nav tab — a curated slice of the
+// catalog on its own page, so the flagship theory spine isn't buried in the one
+// long catalog scroll. Each maps to a SUBSECTIONS entry (reusing its course list
+// + blurb), and gets a /<slug>/ page + a nav tab. Add a row here to add a tab.
+const SECTION_TABS = [
+  { slug: 'synmatic', label: 'Synmatic', program: 'Tactical AI Orchestration',
+    subLabel: 'The Capstone · Synmatic', title: 'Synmatic',
+    eyebrow: 'Tactical AI Orchestration · The Capstone' },
+];
+
+// The course card, root-aware so it works from the catalog (root '') and from a
+// section landing page (root '../'). Single source of truth for card markup.
+function courseCard(c, root = '') {
+  return `<a class="course-card" href="${root}courses/${c.slug}/index.html">
+      <div class="cc-top"></div>
+      <div class="cc-body">
+        <div class="course-meta"><span class="pill free">Free</span><span class="pill level lvl-${c.level.rank}">${c.level.label}</span><span class="pill modules">${c.modules} lessons</span>${c.textbook ? '<span class="pill book">📖 Textbook</span>' : ''}</div>
+        <h3>${c.title}</h3>
+        <p>${c.blurb}</p>
+        <span class="cc-link">Start the course &rarr;</span>
+      </div></a>`;
+}
+
+// A section landing page: the section's blurb + a grid of its course cards.
+function renderSectionPage(section, bySlug) {
+  const sub = (SUBSECTIONS[section.program] || []).find((s) => s.label === section.subLabel);
+  const courses = (sub ? sub.slugs : []).map((s) => bySlug.get(s)).filter(Boolean);
+  const root = '../';
+  const main = `<main class="section-page">
+  <style>
+    .section-page{max-width:1120px;margin:0 auto;padding:1.5rem 1.25rem 3.5rem;}
+    .sp-hero{padding:1.4rem 0 1.4rem;border-bottom:1px solid #e5e7eb;margin-bottom:1.8rem;}
+    .sp-eyebrow{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#0f766e;font-weight:700;}
+    .sp-hero h1{font-size:clamp(2rem,5vw,2.8rem);margin:.4rem 0 .6rem;letter-spacing:-.02em;}
+    .sp-lede{color:#555;font-size:1.06rem;line-height:1.6;max-width:64ch;margin:0;}
+    .sp-count{color:#888;font-size:.85rem;margin-top:.9rem;}
+  </style>
+  <div class="sp-hero">
+    <p class="sp-eyebrow">${section.eyebrow}</p>
+    <h1>${section.title}</h1>
+    <p class="sp-lede">${sub ? sub.blurb : ''}</p>
+    <p class="sp-count">${courses.length} courses &middot; free forever</p>
+  </div>
+  <div class="course-grid">
+    ${courses.map((c) => courseCard(c, root)).join('\n    ')}
+  </div>
+</main>`;
+  ensureDir(join(DIST, section.slug));
+  writeFileSync(join(DIST, section.slug, 'index.html'),
+    page({ root, title: `${section.title} — TAO Academy`, active: section.slug, main }));
+}
+
 // ---------------------------------------------------------------
 //  Site chrome
 // ---------------------------------------------------------------
@@ -319,6 +371,7 @@ function nav(root, active) {
   <button class="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
   <div class="nav-links">
     ${a(`${root}index.html`, 'Courses', active === 'home' ? 'active' : '')}
+    ${SECTION_TABS.map((s) => a(`${root}${s.slug}/index.html`, s.label, active === s.slug ? 'active' : '')).join('\n    ')}
     ${a(`${root}index.html#bookshelf`, 'Books')}
     ${a(APPS_URL, 'Free Apps')}
     ${a(SHOP_URL, 'Shop', 'nav-cta')}
@@ -472,14 +525,7 @@ function renderCourse(course) {
 //  Catalog home (grouped by program, level badge per card)
 // ---------------------------------------------------------------
 function renderCatalog(byProgram, totals) {
-  const card = (c) => `<a class="course-card" href="courses/${c.slug}/index.html">
-      <div class="cc-top"></div>
-      <div class="cc-body">
-        <div class="course-meta"><span class="pill free">Free</span><span class="pill level lvl-${c.level.rank}">${c.level.label}</span><span class="pill modules">${c.modules} lessons</span>${c.textbook ? '<span class="pill book">📖 Textbook</span>' : ''}</div>
-        <h3>${c.title}</h3>
-        <p>${c.blurb}</p>
-        <span class="cc-link">Start the course &rarr;</span>
-      </div></a>`;
+  const card = (c) => courseCard(c, '');
 
   const bySlug = new Map();
   for (const list of byProgram.values()) for (const c of list) bySlug.set(c.slug, c);
@@ -706,6 +752,12 @@ function main() {
 
   const totals = { courses: courseCount, lessons: lessonCount, programs: PROGRAMS.filter((p) => (byProgram.get(p.label) || []).length).length };
   renderCatalog(byProgram, totals);
+
+  // Section landing pages (each its own nav tab) — a curated slice of the
+  // catalog on its own page instead of buried in the one long scroll.
+  const bySlug = new Map();
+  for (const list of byProgram.values()) for (const c of list) bySlug.set(c.slug, c);
+  for (const section of SECTION_TABS) renderSectionPage(section, bySlug);
 
   // Bake the textbook manifest into the reader.
   const readerTpl = readFileSync(join(__dirname, 'src', 'read.html'), 'utf8');
