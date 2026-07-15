@@ -310,9 +310,13 @@ function makeCourse(program, srcAbs, usedSlugs) {
 // long catalog scroll. Each maps to a SUBSECTIONS entry (reusing its course list
 // + blurb), and gets a /<slug>/ page + a nav tab. Add a row here to add a tab.
 const SECTION_TABS = [
+  // subLabel set → a single SUBSECTIONS lane on the page (one course grid).
   { slug: 'synmatic', label: 'Synmatic', program: 'Tactical AI Orchestration',
     subLabel: 'The Capstone · Synmatic', title: 'Synmatic',
     eyebrow: 'Tactical AI Orchestration · The Capstone' },
+  // subLabel unset → the whole PROGRAM, every lane rendered as its own block.
+  { slug: 'ai-mba', label: 'AI MBA', program: 'The AI MBA', title: 'The AI MBA',
+    eyebrow: 'The AI WIN-WIN Institute · Business Curriculum' },
 ];
 
 // The course card, root-aware so it works from the catalog (root '') and from a
@@ -328,11 +332,47 @@ function courseCard(c, root = '') {
       </div></a>`;
 }
 
-// A section landing page: the section's blurb + a grid of its course cards.
-function renderSectionPage(section, bySlug) {
-  const sub = (SUBSECTIONS[section.program] || []).find((s) => s.label === section.subLabel);
-  const courses = (sub ? sub.slugs : []).map((s) => bySlug.get(s)).filter(Boolean);
+// Root-aware grouped block — a titled sub-lane with its own course grid.
+function sectionGridBlock(label, blurb, list, root) {
+  return `<div class="subsection">
+      <h3 class="subsection-label">${label}</h3>${blurb ? `\n      <p class="subsection-blurb">${blurb}</p>` : ''}
+      <div class="course-grid">
+        ${list.map((c) => courseCard(c, root)).join('\n        ')}
+      </div>
+    </div>`;
+}
+
+// A section landing page. Two shapes:
+//  • subLabel set   → a single SUBSECTIONS lane (Synmatic): one course grid.
+//  • subLabel unset → a whole PROGRAM (The AI MBA): every lane as its own block,
+//    plus a "More in this program" catch-all so nothing is ever lost.
+function renderSectionPage(section, byProgram, bySlug) {
   const root = '../';
+  let lede, count, body;
+  if (section.subLabel) {
+    const sub = (SUBSECTIONS[section.program] || []).find((s) => s.label === section.subLabel);
+    const courses = (sub ? sub.slugs : []).map((s) => bySlug.get(s)).filter(Boolean);
+    lede = section.lede || (sub ? sub.blurb : '');
+    count = courses.length;
+    body = `<div class="course-grid">
+    ${courses.map((c) => courseCard(c, root)).join('\n    ')}
+  </div>`;
+  } else {
+    const subs = SUBSECTIONS[section.program] || [];
+    const programCourses = byProgram.get(section.program) || [];
+    const placed = new Set();
+    const blocks = [];
+    for (const sub of subs) {
+      const list = sub.slugs.map((s) => bySlug.get(s)).filter((c) => c && c.program === section.program && !placed.has(c.slug));
+      list.forEach((c) => placed.add(c.slug));
+      if (list.length) blocks.push(sectionGridBlock(sub.label, sub.blurb, list, root));
+    }
+    const rest = programCourses.filter((c) => !placed.has(c.slug));
+    if (rest.length) blocks.push(sectionGridBlock('More in this program', '', rest, root));
+    lede = section.lede || (PROGRAMS.find((p) => p.label === section.program) || {}).blurb || '';
+    count = programCourses.length;
+    body = blocks.join('\n  ');
+  }
   const main = `<main class="section-page">
   <style>
     .section-page{max-width:1120px;margin:0 auto;padding:1.5rem 1.25rem 3.5rem;}
@@ -341,16 +381,17 @@ function renderSectionPage(section, bySlug) {
     .sp-hero h1{font-size:clamp(2rem,5vw,2.8rem);margin:.4rem 0 .6rem;letter-spacing:-.02em;}
     .sp-lede{color:#555;font-size:1.06rem;line-height:1.6;max-width:64ch;margin:0;}
     .sp-count{color:#888;font-size:.85rem;margin-top:.9rem;}
+    .subsection{margin:1.5rem 0 .5rem;}
+    .subsection-label{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:#0f766e;font-weight:700;margin:1.6rem 0 .15rem;}
+    .subsection-blurb{color:#666;font-size:.92rem;margin:0 0 .9rem;max-width:62ch;}
   </style>
   <div class="sp-hero">
     <p class="sp-eyebrow">${section.eyebrow}</p>
     <h1>${section.title}</h1>
-    <p class="sp-lede">${sub ? sub.blurb : ''}</p>
-    <p class="sp-count">${courses.length} courses &middot; free forever</p>
+    <p class="sp-lede">${lede}</p>
+    <p class="sp-count">${count} courses &middot; free forever</p>
   </div>
-  <div class="course-grid">
-    ${courses.map((c) => courseCard(c, root)).join('\n    ')}
-  </div>
+  ${body}
 </main>`;
   ensureDir(join(DIST, section.slug));
   writeFileSync(join(DIST, section.slug, 'index.html'),
@@ -757,7 +798,7 @@ function main() {
   // catalog on its own page instead of buried in the one long scroll.
   const bySlug = new Map();
   for (const list of byProgram.values()) for (const c of list) bySlug.set(c.slug, c);
-  for (const section of SECTION_TABS) renderSectionPage(section, bySlug);
+  for (const section of SECTION_TABS) renderSectionPage(section, byProgram, bySlug);
 
   // Bake the textbook manifest into the reader.
   const readerTpl = readFileSync(join(__dirname, 'src', 'read.html'), 'utf8');
