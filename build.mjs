@@ -43,6 +43,7 @@ const MANUAL_TEXTBOOKS = {
   'agicore': 'Textbooks/Agicore/Agicore Textbook/agicore_theory_architecture_practice.epub',
   'resonance-engineering': 'Textbooks/Resonance Engineering/resonance_engineering.epub',
   'cognition-systems-engineering': 'Textbooks/Cognition Systems Engineering/CSE Textbook/cognition_systems_engineering.epub',
+  'semantic-systems-engineering': 'Textbooks/Semantic Systems Engineering/SSE Textbook/semantic_systems_engineering.epub',
   'the-one-person-enterprise': 'AI Business School/The One-Person Enterprise/the_one_person_enterprise.epub',
   'ai-creative-direction': 'AI Art Textbooks/AI Creative Director Textbook/the_ai_creative_director.epub',
 };
