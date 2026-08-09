@@ -132,9 +132,9 @@ const SUBSECTIONS = {
     { label: 'Core Techniques', blurb: 'The everyday practitioner skills — prompt craft, strategy, and getting the work off your plate.',
       slugs: ['mastering-ai-prompts', 'how-to-use-your-strategic-ai', 'seven-habits', 'atomic-ai', 'stop-being-the-bottleneck', 'skill-libraries-for-ai', 'multi-model-orchestration', 'building-with-claude-code'] },
     { label: 'The Capstone · Synmatic', blurb: 'The graduate-level theory that grounds the practice — the formal spine of the methodology.',
-      slugs: ['cognition-systems-engineering', 'semantic-systems-engineering', 'resonance-engineering', 'agicore', 'mind-breeding', 'the-formless-response', 'thin-the-veil-real-world-mmos', 'building-an-ambient-ai-device', 'advanced-ambient-ai', 'ai-assisted-architecture', 'the-novasyn-dev-stacks'] },
+      slugs: ['cognition-systems-engineering', 'semantic-systems-engineering', 'resonance-engineering', 'agicore', 'mind-breeding', 'the-formless-response', 'thin-the-veil-real-world-mmos', 'building-an-ambient-ai-device', 'advanced-ambient-ai', 'the-activity-mining-thesis', 'ai-assisted-architecture', 'the-novasyn-dev-stacks'] },
     { label: 'Applied Craft', blurb: 'The method turned on specific work — writing, building, shipping.',
-      slugs: ['romance-realms', 'software-assassination-service', 'the-archive-intensive', 'the-workshop'] },
+      slugs: ['romance-realms', 'making-compliance-training-videos', 'software-assassination-service', 'the-archive-intensive', 'the-workshop'] },
   ],
   // The AI MBA — the eight-track business ladder, in groups of three.
   'The AI MBA': [
@@ -274,12 +274,24 @@ function findTextbook(courseDir) {
   }
   return null;
 }
+// Directories carrying lessons but no index.html. These are invisible to
+// discovery — not partially-broken courses, just absent — so the only way they
+// ever surface is if we go looking. Collected during the walk and reported at
+// the end of the build. Three courses shipped late because nothing did this.
+const ORPHANS = [];
+// Folders where lessons-without-an-index is the expected state, not a mistake.
+const ORPHAN_IGNORE = /(^|\/)(_archive|zzz_archive|do.not.use|incomplete)/i;
+
 function discover(program, usedSlugs) {
   const root = join(SKOOL, program.dir);
   const courses = [];
   const walk = (dir) => {
     if (isCourseDir(dir)) { courses.push(makeCourse(program, dir, usedSlugs)); return; } // don't recurse into a course
     let entries; try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    const lessons = entries.filter((e) => e.isFile() && /^module_\d+.*\.html$/i.test(e.name)).length;
+    if (lessons && !ORPHAN_IGNORE.test(dir)) {
+      ORPHANS.push({ program: program.label, dir: relative(SKOOL, dir), lessons });
+    }
     for (const e of entries) if (e.isDirectory()) walk(join(dir, e.name));
   };
   walk(root);
@@ -807,6 +819,11 @@ function main() {
 
   console.log(`\nTAO Academy built → dist/`);
   console.log(`  ${totals.courses} courses, ${totals.lessons} lessons, ${totals.programs} programs, ${Object.keys(BOOKS).length} textbooks.`);
+  if (ORPHANS.length) {
+    console.log(`\n  ⚠ ${ORPHANS.length} folder(s) hold lessons but no index.html — invisible to the catalog:`);
+    for (const o of ORPHANS) console.log(`      ${o.dir}  (${o.lessons} lessons, ${o.program})`);
+    console.log('      Add an index.html to publish, or move under _archive/ to silence.');
+  }
 }
 
 main();
