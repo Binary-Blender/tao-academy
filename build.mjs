@@ -279,6 +279,11 @@ function findTextbook(courseDir) {
 // ever surface is if we go looking. Collected during the walk and reported at
 // the end of the build. Three courses shipped late because nothing did this.
 const ORPHANS = [];
+// Course landings whose lesson links point at files that don't exist. The
+// renderer neutralizes dead relative links (unwrapping them to plain text) so
+// no 404 ever surfaces — the lessons simply stop being clickable and the page
+// still looks fine. Ten courses shipped this way before anyone noticed.
+const DEADLINKS = [];
 // Folders where lessons-without-an-index is the expected state, not a mistake.
 const ORPHAN_IGNORE = /(^|\/)(_archive|zzz_archive|do.not.use|incomplete)/i;
 
@@ -299,6 +304,16 @@ function discover(program, usedSlugs) {
 }
 function makeCourse(program, srcAbs, usedSlugs) {
   const idxHtml = readFileSync(join(srcAbs, 'index.html'), 'utf8');
+  // Landing-page links that name a sibling file which isn't there.
+  {
+    const present = new Set(readdirSync(srcAbs));
+    const dead = [...idxHtml.matchAll(/href="([^"]+)"/gi)]
+      .map((m) => m[1])
+      .filter((h) => !/^(https?:|mailto:|#|\/\/|data:)/i.test(h) && /\.html?($|[?#])/i.test(h))
+      .map((h) => h.split(/[?#]/)[0])
+      .filter((h) => !h.includes('/') && !present.has(h));
+    if (dead.length) DEADLINKS.push({ dir: relative(SKOOL, srcAbs), dead: [...new Set(dead)] });
+  }
   const rawTitle = grab(idxHtml, /<title[^>]*>([\s\S]*?)<\/title>/i) || h1Of(idxHtml);
   const rel = relative(SKOOL, srcAbs);
   const segments = rel.split(/[\\/]/);
@@ -819,6 +834,10 @@ function main() {
 
   console.log(`\nTAO Academy built → dist/`);
   console.log(`  ${totals.courses} courses, ${totals.lessons} lessons, ${totals.programs} programs, ${Object.keys(BOOKS).length} textbooks.`);
+  if (DEADLINKS.length) {
+    console.log(`\n  ⚠ ${DEADLINKS.length} course landing(s) link to files that don't exist — the lessons render as plain text, not links:`);
+    for (const d of DEADLINKS) console.log(`      ${d.dir}  ->  ${d.dead.join(', ')}`);
+  }
   if (ORPHANS.length) {
     console.log(`\n  ⚠ ${ORPHANS.length} folder(s) hold lessons but no index.html — invisible to the catalog:`);
     for (const o of ORPHANS) console.log(`      ${o.dir}  (${o.lessons} lessons, ${o.program})`);
