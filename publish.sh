@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 
 node build.mjs
 
-KF="${KF:-/mnt/c/Users/chris/Documents/_Dev/agicore-foundry/api_keys.txt}"
+KF="${KF:-/mnt/c/Users/chris/Documents/api_keys_consolidated.txt}"
 export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-$(grep -i 'apit token' "$KF" | grep -oE 'cfat_[A-Za-z0-9]+')}"
 export CLOUDFLARE_ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-34d5a9fc15e4c50e684ba6030e92d3fa}"
 
